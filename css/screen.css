@@ -229,8 +229,11 @@ body.template-home article .article-excerpt {
 }
 
 code {
-  font-size: 9pt;
   font-family: Monaco, Consolas, monospace;
+}
+
+.article-content code {
+  font-size: 9pt;
 }
 
 .article-content p.image-full {
