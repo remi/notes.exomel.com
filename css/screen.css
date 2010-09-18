@@ -25,7 +25,7 @@ body {
 
 p,ul,ol,table { margin-bottom: 1em; }
 ul { margin-left: 20px; }
-a { text-decoration: underline; cursor: pointer; color: #2d5749; }
+a { text-decoration: underline; cursor: pointer; color: #666; }
 a:focus { outline: 1px dotted; }
 a:visited {  }
 a:hover, a:focus { text-decoration: none; }
@@ -85,6 +85,9 @@ header .main span {
   color: rgba(255,255,255,0.5);
 }
 
+*+html header .main span { color: #aaa; }
+* html header .main span { color: #aaa; }
+
 header strong {
   font-weight: normal;
 }
@@ -103,16 +106,24 @@ header .feed a {
 }
 
 footer {
-  color: rgba(255,255,255,0.5);
+  color: #ddd;
+  color: rgba(255, 255, 255, 0.5);
   text-align: center;
   padding: 20px 0;
 }
+
+*+html footer { color: #bbb; }
+* html footer { color: #bbb; }
+
+*+html footer a { color: #eee; }
+* html footer a { color: #eee; }
 
 footer p {
   margin: 0;
 }
 
 footer p a {
+  color: #eee;
   color: rgba(255,255,255,0.8);
   text-decoration: none;
 }
@@ -220,7 +231,8 @@ body.template-home article .article-excerpt {
 }
 
 code {
-  font-size: 10pt;
+  font-size: 9pt;
+  font-family: Monaco, Consolas, monospace;
 }
 
 .article-content p.image-full {
