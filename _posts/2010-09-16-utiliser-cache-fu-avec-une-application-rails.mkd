@@ -3,6 +3,10 @@ layout: post
 titre: Utiliser cache_fu avec une application Rails
 excerpt: Plus une application effectue de requêtes vers une base de données, plus elle est ralentie. Le plugin <code>cache_fu</code> nous permet d’effectuer des requêtes à un regroupement de serveurs <code>memcached</code> tout en restant étroitement lié à un modèle <code>ActiveRecord</code>;
 couleur: "rgb(112,130,0)"
+categories:
+- ruby
+- cache_fu
+- memcached
 ---
 
 Le plugin [`cache_fu`](http://github.com/defunkt/cache_fu) a été développé par [Chris Wanstrath](http://chriswanstrath.com/) (connu pour être un des co-fondateurs de [GitHub](http://github.com)) à partir du code du plugin déjà-existant `acts_as_cached`. Il n’a qu’un seul but : permettre de stocker des enregistrements `ActiveRecord` sur un serveur `memcached` pour éviter de faire trop de requête à la base de données.
