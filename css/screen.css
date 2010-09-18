@@ -140,9 +140,7 @@ footer p strong {
 #content {
   background: #fff;
   padding: 25px 25px 15px;
-  border-radius: 6px;
   -moz-border-radius: 6px;
-  -webkit-border-radius: 6px;
   -moz-box-shadow: 0 0 20px rgba(0,0,0,0.8);
   -webkit-box-shadow: 0 0 20px rgba(0,0,0,0.8);
 }
