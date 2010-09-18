@@ -1,0 +1,14 @@
+---
+layout: master
+section: single
+---
+      <article>
+        <p class="meta"><time pubdate datetime="{{ page.date | date:"%Y-%m-%d"}}">{{ page.date | date:"%e %B %Y" }}</time></p>
+        <h1>{{ page.titre }}</h1>
+        <div class="article-content">
+          {{ content }}
+        </div>
+        <div class="article-meta">
+          Cette note a été publiée le {{ page.date | date:"%e %B %Y" }} par Rémi Prévost. Vous pouvez lui faire part de vos commentaires par courriel à <code>remi</code> suivi du symbole habituel puis de <code>exomel.com</code>. Il est également disponible sur Twitter via <a href="http://twitter.com/remi">@remi</a>.
+        </div>
+      </article>

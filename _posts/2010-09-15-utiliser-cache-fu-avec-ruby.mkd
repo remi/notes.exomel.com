@@ -1,0 +1,139 @@
+---
+layout: post
+titre: Utiliser cache_fu avec une application Rails
+excerpt: Plus une application effectue de requêtes vers une base de données, plus elle est ralentie. Le plugin <code>cache_fu</code> nous permet d’effectuer des requêtes à un regroupement de serveurs <code>memcached</code> tout en restant étroitement lié à un modèle <code>ActiveRecord</code>;
+---
+
+Le plugin [`cache_fu`](http://github.com/defunkt/cache_fu) a été développé par [Chris Wanstrath](http://chriswanstrath.com/) (connu pour être un des co-fondateurs de [GitHub](http://github.com)) à partir du code du plugin déjà-existant `acts_as_cached`. Il n’a qu’un seul but : permettre de stocker des enregistrements `ActiveRecord` sur un serveur `memcached` pour éviter de faire trop de requête à la base de données.
+
+Il existe très peu de documentation pour le plugin, c’est pourquoi j’ai voulu lui consacrer un billet avec des exemples d’utilisation, même s’il n’est plus développé par son auteur.
+
+## Installation
+
+Pour installer `memcached`, je vous conseille [homebrew](http://mxcl.github.com/homebrew).
+
+{% highlight bash %}
+# Installe la dernière version de memcached via homebrew
+$ brew install memcached
+
+# fais tourner memcached sur le port 11211 en mode verbose
+$ memcached -p 11211 -vv
+{% endhighlight %}
+
+Ensuite, pour install le plugin. À partir de votre dossier d’application Rails :
+
+{% highlight bash %}
+$ ./script/plugin install http://github.com/defunkt/cache_fu.git
+{% endhighlight %}
+
+La configuration de `cache_fu` via le fichier `config/memcached.yml` est assez simple à comprendre.
+
+## La base
+
+Le plugin est très simple à utiliser. On n’a qu’à spécifier dans notre modèle qu’on veut que ce dernier et ses instances répondent aux méthodes de cache :
+
+{% highlight ruby %}
+class Kit < ActiveRecord::Base
+  acts_as_cached
+end
+{% endhighlight %}
+
+Cela ajoute la méthode `get_cache` à la classe. On peut ensuite récupérer les données dans la base de données comme on le ferait avec un `find`.
+
+{% highlight ruby %}
+class KitsController < ApplicationController
+  def show
+    # @kit = Kit.find params[:id]
+    @kit = Kit.get_cache params[:id]
+  end
+end
+{% endhighlight %}
+
+Un des aspects très important à garder en tête lorsqu’on utilise `cache_fu` (ou tout autre méthode de cache) est qu’il est la tâche du client d’invalider les données du serveur `memcached` lorsque celles-ci sont rendues obsolètes par l’application. Pour ce faire, nous pouvons utiliser les “callbacks” de Rails, `after_save` et `after_destroy` :
+
+{% highlight ruby %}
+class Kit < ActiveRecord::Base
+  acts_as_cached
+
+  def after_save
+    self.expire_cache
+  end
+
+  def after_destroy
+    self.expire_cache
+  end
+end
+{% endhighlight %}
+
+Cela nous assure que lorsqu’un enregistrement est mis à jour, nous irons le récupérer à partir de la base de données la prochaine où nous en aurons besoin.
+
+## La cache locale
+
+Si la structure de notre application nous demande d’aller chercher un même enregistrement plusieurs fois lors d’une seule même requête HTTP, la performance de l’application sera affectée puisqu’à chaque fois, une requête vers `memcached` sera effectuée. Pour remédier à ce problème, `cache_fu` fournit une cache *locale*.
+
+{% highlight ruby %}
+class ApplicationController < ActionController::Base
+  before_filter :local_cache_for_request
+end
+{% endhighlight %}
+
+Lorsqu’un enregistrement est récupéré via `memcached`, il est stocké dans la cache locale pour utilisation future dans la même requête. `Cache_fu` se charge également de tenir la cache locale à jour lorsqu’on appelle la méthode `expire_cache`.
+
+## Méthodes personnalisées
+
+Il n’est pas rare de vouloir garder en cache le résultat d’une méthode de classe. Par exemple ici, on veut garder en cache la liste des kits qui se trouveront sur la page d’accueil de notre application :
+
+{% highlight ruby %}
+def index
+  @kits = Kit.caches :homepage_kits
+end
+{% endhighlight %}
+
+Qu’est-ce qui se passe ici? La méthode `caches` appelle la fonction `homepage_kits` du modèle `Kit` et garde le résultat en cache.
+
+{% highlight ruby %}
+class Kit < ActiveRecord::Base
+  acts_as_cached
+
+  def self.homepage_kits
+    Kit.find :all, :conditions => { :homepage_worthy => true }, :order_by => "name ASC"
+  end
+end
+{% endhighlight %}
+
+Cette technique est très utile pour conserver en cache des requêtes lourdes qui demandent beaucoup temps de traitement à la base de données.
+
+## Plusieurs enregistrements à la fois
+
+Pour éviter de faire plusieurs requêtes consécutives au serveur `memcached`, on peut utiliser un `Array` comme premier paramètre de la méthode `get_cache`.
+
+{% highlight ruby %}
+class KitsController < ApplicationController
+  def index
+    @kits = Kit.get_cache 1, 2, 3
+  end
+end
+{% endhighlight %}
+
+## Associations
+
+`Cache_fu` permet aussi de stocker les données associées à un modèle via les hooks `has_many`, `belongs_to` et autres.
+
+{% highlight ruby %}
+class Kit < ActiveRecord::Base
+  acts_as_cached :include => :comments
+  has_many :comments
+end
+
+class KitsController < ApplicationController
+  def show
+    @kit = Kit.get_cache params[:id]
+    # @kit.comments est stocké en cache
+    # @kit.comments => [<#Comment>, …]
+  end
+end
+{% endhighlight %}
+
+Il faut faire attention avec les associations gardées en cache, car plus on stocke de données via `memcached`, plus on est responsable du maintien de la « fraicheur » de la cache lors de la modification ou de la suppression de ces données.
+
+Par exemple, si un objet est associé à 5 objets et qu’il est gardés en cache via association, lorsqu’on le modifie, on devra faire expirer les 5 objets qui contiennent l’objet maintenant obsolète dans leur cache.
