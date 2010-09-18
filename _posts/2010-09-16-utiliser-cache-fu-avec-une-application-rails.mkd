@@ -9,7 +9,7 @@ categories:
 - memcached
 ---
 
-Le plugin [`cache_fu`](http://github.com/defunkt/cache_fu) a été développé par [Chris Wanstrath](http://chriswanstrath.com/) (connu pour être un des co-fondateurs de [GitHub](http://github.com)) à partir du code du plugin déjà-existant `acts_as_cached`. Il n’a qu’un seul but : permettre de stocker des enregistrements `ActiveRecord` sur un serveur `memcached` pour éviter de faire trop de requête à la base de données.
+Le plugin [`cache_fu`](http://github.com/defunkt/cache_fu) a été développé par [Chris Wanstrath](http://chriswanstrath.com/) (connu pour être un des co-fondateurs de [GitHub](http://github.com)) à partir du code du plugin déjà-existant `acts_as_cached`. Il n’a qu’un seul but : permettre à une application [Ruby on Rails](http://rubyonrails.org) de stocker des enregistrements `ActiveRecord` sur un serveur `memcached` pour éviter de faire trop de requête à la base de données.
 
 Il existe très peu de documentation pour le plugin, c’est pourquoi j’ai voulu lui consacrer un billet avec des exemples d’utilisation, même s’il n’est plus développé par son auteur.
 
