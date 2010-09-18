@@ -1,7 +1,7 @@
 ---
 layout: post
 titre: Utiliser cache_fu avec une application Rails
-excerpt: Plus une application effectue de requêtes vers une base de données, plus elle est ralentie. Le plugin <code>cache_fu</code> nous permet d’effectuer des requêtes à un regroupement de serveurs <code>memcached</code> tout en restant étroitement lié à un modèle <code>ActiveRecord</code>;
+excerpt: Plus une application effectue de requêtes vers une base de données, plus elle est ralentie. Le plugin <code>cache_fu</code> nous permet d’effectuer des requêtes à un regroupement de serveurs <code>memcached</code> tout en restant étroitement lié à un modèle <code>ActiveRecord</code>.
 couleur: "rgb(112,130,0)"
 categories:
 - ruby
