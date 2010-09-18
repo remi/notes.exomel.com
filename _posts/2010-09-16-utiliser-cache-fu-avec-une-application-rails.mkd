@@ -70,7 +70,7 @@ class Kit < ActiveRecord::Base
 end
 {% endhighlight %}
 
-Cela nous assure que lorsqu’un enregistrement est mis à jour, nous irons le récupérer à partir de la base de données la prochaine où nous en aurons besoin.
+Cela nous assure que lorsqu’un enregistrement est mis à jour, nous irons le récupérer à partir de la base de données la prochaine fois où nous en aurons besoin.
 
 ## La cache locale
 
