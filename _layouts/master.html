@@ -22,7 +22,7 @@
       </p>
       <hr />
     </header>
-    <div id="content">
+    <div id="content" {% if page.couleur %} style="border-top: 20px solid {{ page.couleur }};" {% endif %}>
       {{ content }}
     </div>
     <footer>

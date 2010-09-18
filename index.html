@@ -5,8 +5,8 @@ titre: Accueil
 ---
       {% for post in site.posts %}
       <article>
-        <p class="meta"><time pubdate datetime="{{ post.date | date:"%Y-%m-%d"}}">{{ post.date | date:"%e %B %Y" }}</time></p>
-        <h1><a href="{{ post.url }}">{{ post.titre }}</a></h1>
+      <p class="meta"><a href="{{ post.url }}"><time pubdate datetime="{{ post.date | date:"%Y-%m-%d"}}">{{ post.date | date:"%e %B %Y" }}</time></a></p>
+        <h1><span style="background: {{ post.couleur }}"></span> <a href="{{ post.url }}">{{ post.titre }}</a></h1>
         <div class="article-excerpt">
           <p>{{ post.excerpt }}</p>
         </div>
