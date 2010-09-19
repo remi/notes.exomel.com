@@ -2,7 +2,7 @@
 layout: nil
 ---
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom">
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:remiprevost="http://notes.remiprevost.com">
 	<title>Les notes de Rémi Prévost — dernières notes</title>
 	<link href="{{ site.url }}/atom.xml" rel="self"/>
 	<link href="{{ site.url }}"/>
@@ -15,6 +15,7 @@ layout: nil
 	{% for post in site.posts limit: 15 %}
 	<entry>
 		<title>{{ post.titre | strip_html }}</title>
+		<remiprevost:color>{{ post.couleur }}</remiprevost:color>
 		<link href="{{ site.url }}{{ post.url }}" />
 		<updated>{{ post.date | date_to_xmlschema }}</updated>
 		<id>{{ site.url }}{{ post.id }}</id>
