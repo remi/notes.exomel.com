@@ -1,0 +1,63 @@
+---
+layout: post
+titre: <code>has_json_fields</code>
+excerpt: Présentation d’un plugin Ruby on Rails permettant de stocker des objets Ruby dans le champ d’un modèle <code>ActiveRecord</code> sous forme de chaine JSON, en convertissant automatiquement à la lecture et à l’écriture.
+couleur: "rgb(0,72,130)"
+categories:
+- ruby
+- json
+- rails
+---
+
+J’ai développé le plugin `has_json_fields` en travaillant sur [Quincaillerie sucrée](http://www.quincailleriesucree.com) où il était nécessaire de stocker un hash arbitraire (la variable `params` de Rails qui contient des informations fournies par [PayPal](http://www.paypal.com) lors de notifications *IPN*) dans la base de données.
+
+Comme il est préférable de stocker ces informations en format texte (car la structure du hash n’est jamais la même), JSON m’a semblé être la meilleure solution. Cependant, il peut être fastidieux de toujours convertir les données lorsqu’on les modifie ou que l’on veut accéder à une clé précise :
+
+{% highlight ruby %}
+require 'json'
+class OrdersController < ApplicationController
+
+  def show
+    order = Order.get params[:id]
+    metadata = JSON.parse order.paypal_metadata
+    puts metadata["address_name"]
+  end
+
+  def update
+    order = Order.get params[:id]
+    metadata = { :foo => :bar }
+    order.paypal_metadata = metadata.to_json
+    order.save
+  end
+
+end
+{% endhighlight %}
+
+C’est donc pour éviter toutes ces conversions manuelles que j’ai décidé de créer `has_json_fields`, qui n’est en fait qu’un très simple plugin qui n’ajoute qu’une seule méthode éponyme à tous les objets.
+
+{% highlight ruby %}
+class Order < ActiveRecord::Base
+  has_json_fields :paypal_metadata
+end
+{% endhighlight %}
+
+Ensuite, on peut l’utiliser ainsi :
+
+{% highlight ruby %}
+class OrdersController < ApplicationController
+
+  def show
+    order = Order.get params[:id]
+    puts order.paypal_metadata[:address_name] # les clés sont des symboles
+  end
+
+  def update
+    order = Order.get params[:id]
+    order.paypal_metadata = { :foo => :bar }
+    order.save
+  end
+
+end
+{% endhighlight %}
+
+Le [code source du plugin](http://github.com/remiprev/has_json_fields) est hébergé chez [GitHub](http://github.com) et disponible sous [license MIT](http://github.com/remiprev/has_json_fields/blob/master/LICENSE).
