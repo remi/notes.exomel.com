@@ -13,3 +13,9 @@ section: single
           Cette note a été publiée le {{ page.date | date:"%e %B %Y" }} par Rémi Prévost. Vous pouvez lui faire part de vos commentaires par courriel à <code>remi</code> suivi du symbole habituel puis de <code>exomel.com</code>. Il est également disponible sur Twitter via <a href="http://twitter.com/remi">@remi</a>.
         </div>
       </article>
+      <div class="comments">
+        <div id="disqus_thread"></div>
+        <script type="text/javascript">
+          var disqus_identifier = "{{ page.title }}"; (function() { var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true; dsq.src = 'http://notes-remiprevost.disqus.com/embed.js'; (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq); })(); </script>
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript=notes-remiprevost">comments powered by Disqus.</a></noscript>
+      </div>

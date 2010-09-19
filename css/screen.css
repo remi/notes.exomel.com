@@ -285,6 +285,31 @@ p.meta a {
 
 /* }}} */
 
+/* @section Comments {{{
+ ******************************************************************************/
+
+.dsq-comment-header {
+  background: #ddd !important;
+}
+
+.comments {
+  padding: 10px 0 0;
+}
+
+.comments h3 {
+  font-size: 140%;
+  margin: 0 0 0.7em;
+}
+
+.dsq-brlink,
+.dsq-options,
+.dsq-pagination,
+#dsq-global-toolbar {
+  display: none !important;
+}
+
+/* }}} */
+
 /* @section Pygments {{{
  ******************************************************************************/
 
