@@ -244,8 +244,9 @@ h1 code {
   text-align: center;
 }
 
-.article-content p.image-full img {
+.article-content img {
   max-width: 100%;
+  width: 100%;
 }
 
 .article-content p.image-float-right img {
