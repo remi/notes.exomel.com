@@ -1,0 +1,55 @@
+---
+layout: post
+titre: J’utilise ça
+excerpt: Les périphériques, logiciels et utilitaires que j’utilise chaque jour pour accomplir mon travail.
+couleur: "rgb(130,67,0)"
+categories:
+- vim
+- firefox
+- postbox
+- homebrew
+---
+
+Ce billet devait à l’origine être publié sur [utilise.ca](http://utilise.ca), un site que j’ai créé il y a quelques mois (en m’inspirant fortement du site [The Setup](http://usesthis.com)) dans le but de partager les outils utilisés au quotidien par des *geeks* francophones. J’ai toujours été hésitant à publier ce billet sur le site, étant donné que je suis son créateur. J’ai donc décidé de le publier sur ce blogue puisqu’il s’agit de mon espace personnel, et non d’un projet indépendant.
+
+## Qui êtes-vous et que faites-vous dans la vie?
+
+Je m’appelle Rémi Prévost et je suis développeur Web. Je suis passionné de toutes les technologies qui servent à publier du contenu sur le Web : HTML, XHTML, XML, CSS, Javascript, Atom, JSON, PHP, Python, Ruby, etc.
+
+Je suis l’auteur de [Pubwich](http://www.pubwich.org), un petit logiciel libre servant à créer une page HTML simple à partir du contenu publié sur le web par un individu. C’est ce logiciel qui propulse ma [page personnelle](http://remiprevost.com).
+
+Dans le jour, je suis développeur Web chez [Mirego](http://www.mirego.com/). Le soir, je suis « CTO » (lire : responsable du code) de [Quincaillerie sucrée inc](http://www.quincailleriesucree.com) (encore en développement au moment d’écrire ces lignes!).
+
+## Qu’utilisez-vous comme matériel?
+
+J’ai été un utilisateur de Windows (plutôt par obligation/ignorance/[FUD](https://secure.wikimedia.org/wikipedia/en/wiki/Fear,_uncertainty_and_doubt) que par choix personnel) pendant toute ma « jeunesse » jusqu’à ce que je découvre [Ubuntu](http://www.ubuntu.com) et que je me décide enfin à faire le grand saut vers ce système d’exploitation open-source. J’ai utilisé Ubuntu pendant un peu plus d’un an, en fait jusqu’à ce que j’ai eu besoin de me doter d’un nouvel ordinateur portable. À ce moment, aucun ordinateur vendu avec Ubuntu pré-installé (ou à tout le moins, sans Windows) ne convenait à mes besoins et c’est à ce moment que je me suis tourné vers la plateforme Mac, où j’étais assuré de n’avoir aucun problème de compatibilité entre le système d’exploitation et les périphériques — je déteste la compatibilité *hardware*.
+
+Mon ordinateur de travail est donc un [Macbook Pro 13″](http://www.apple.com/ca/macbookpro/) 2.26Ghz avec 4Gb de mémoire vive. Un iPhone 3GS me sert aussi de compagnon pour consulter Wikipédia ([c’est le cas](https://twitter.com/remi/statuses/2950906098) lors de 70% de mes interrogations) lorsque je suis à l’extérieur.
+
+## Qu’utilisez-vous comme logiciels?
+
+Venant du monde de GNU/Linux, j’utilise beaucoup d’applications en « command-line ». J’utilise [tmux](http://tmux.sourceforge.net/) dans une fenêtre unique de Terminal.app (ouverte en mode *fullscreen* à l’aide de [Visor](http://visor.binaryage.com/)) pour pouvoir avoir plusieurs instances de [zsh](http://www.zsh.org), mon shell favori. J’utilise [Homebrew](http://mxcl.github.com/homebrew/) (pour qui j’ai conçu la page d’accueil) pour gérer l’installation d’utilitaires et de logiciels comme [ack](http://betterthangrep.com/), [atool](http://www.nongnu.org/atool/), [git](http://www.git-scm.com), [htop](http://htop.sourceforge.net/), [irssi](http://irssi.org/), [most](http://www.jedsoft.org/most/), [w3m](http://w3m.sourceforge.net/) et [wget](http://www.gnu.org/software/wget/).
+
+![Une capture d’écran de MacVim](/img/billets/macvim.jpg)
+
+J’utilise exclusivement [MacVim.app](http://code.google.com/p/macvim/) pour écrire du code. J’ai commencé à utiliser [Vim](http://www.vim.org) alors que j’étais sur Ubuntu et je suis rapidement devenu accro à sa syntaxe et ses fonctionnalités complexes mais extrêmement puissantes. Une des choses qui me plait le plus avec Vim est sa capacité à être extensible et personnalisable à 100%, et ce de façon ultra-simple, sans avoir besoin de connaître les rouages du code source du logiciel. Quelques lignes de « Vimscript » et on se retrouve rapidement avec une nouvelle fonctionnalité prête à être partagée avec l’immense communauté de Vim.
+
+![Une capture d’écran de Firefox 4.0](/img/billets/firefox.jpg)
+
+Au même titre que Vim est mon seul éditeur de code, [Mozilla Firefox](http://www.getfirefox.com) (armé de l’extension [Vimperator](http://vimperator.org/vimperator), qui lui donne plusieurs fonctionnalités et raccourcis similaires à Vim) est mon seul navigateur Web. Au fil des années (j’ai commencé à l’utiliser alors qu’il s’appellait encore *Firebird*), Firefox et ses nombreuses extensions me sont devenus indispensables pour mon travail ainsi que pour naviguer le Web de façon régulière. Quelques extensions essentielles : [AdBlock Plus](http://adblockplus.org), [ColorZilla](http://www.colorzilla.com/firefox/), [JSONView](https://addons.mozilla.org/en-US/firefox/addon/10869/), [Live HTTP Headers](http://livehttpheaders.mozdev.org/), [Firebug](http://www.getfirebug.com), [Ghostery](http://www.ghostery.com), [Greasemonkey](https://addons.mozilla.org/en-US/firefox/addon/748), [Weave](https://mozillalabs.com/weave/), [Web Developer](http://chrispederick.com/work/web-developer/).
+
+J’ai également été un « *early adopter* » de [Thunderbird](http://www.getthunderbird.com), que j’ai utilisé alors que j’étais sur Windows et Ubuntu. Cependant, lorsque je suis passé à Mac OS X, j’ai changé pour [Postbox](http://www.postbox-inc.com/), qui combine le pouvoir des centaines d’extensions de Thunderbird et une bien meilleure intégration avec le style visuel du système d’exploitation — chose que Thunderbird n’a pas encore réussi à faire, contrairement à Firefox.
+
+Je déteste iTunes (trop grande consommation de mémoire, tente d’être un lecteur multimédia + gestionnaire de média + magasin en ligne + réseau social) et ne l’utilise que pour des besoins de synchronisation. Pour écouter de la musique, je préfère de loin [Ecoute](http://www.ecouteapp.com), un logiciel ultra-léger et personnalisable qui permet de jouer les fichiers de la bibliothèque d’iTunes sans ouvrir ce dernier, en plus d’afficher un petit « widget » personnalisable sur le bureau avec les informations du morceau actuel, dont la couverture d’album (la seule chose visible en permanence sur mon bureau).
+
+![Une capture d’écran d’Alfred](/img/billets/alfred.jpg)
+
+Pour augmenter ma productivité, j’utilise [Alfred](http://www.alfredapp.com) pour lancer des applications et effectuer des recherches sur le Web très rapidement; [Zooom2](http://coderage-software.com/) pour déplacer et redimensionner des fenêtres sans avoir à déplacer mon curseur sur la barre de titre ou le coin inférieur droit de chaque fenêtre; [Keyboard Maestro](http://www.keyboardmaestro.com/main/) pour accélerer l’exécution de certaines tâches répétitives.
+
+Finalement, en rafale : [Things](http://culturedcode.com/things/) pour gérer la liste de choses qu’il me reste à faire, [Adium](http://www.adium.im) pour converser rapidement, [1Password](http://agilewebsolutions.com/products/1Password) pour stocker mes mots de passe, [Fever](http://feedafever.com) pour lire mes fils RSS/Atom, [Echofon](http://www.echofon.com/) (avec l’[icône personnalisée](http://nadesign.net/#goodies?echofon) de Na Wong) pour dire « ce que je fais », [Evom](http://thelittleappfactory.com/evom/) pour convertir les épisodes de South Park pour que je puisse les écouter sur mon iPhone, [Poedit](http://www.poedit.net/) pour modifier des fichiers de traduction, [Sequel Pro](http://www.sequelpro.com/) pour me connecter à des bases de données, [The Unarchiver](http://wakaba.c3.cx/s/apps/unarchiver.html) pour décompresser des fichiers, [Transmission](http://www.transmissionbt.com/) pour télécharger les épisodes de South Park et Community, [Cyberduck](http://www.cyberduck.ch) pour me connecter à des serveurs FTP et Amazon S3, [iStats Menu](http://bjango.com/apps/istatmenus/) pour afficher le niveau d’utilisation de mon CPU, de mémoire vive utilisée et de charge de batterie restante dans ma barre de menu, [FStream](http://www.sourcemac.com/?page=fstream) pour écouter des flux audios sur le Web.
+
+Dans mon iPhone, les applications que j’utilisent le plus (autres que les applications qui complémentent les logiciels déjà mentionnés) : [Wikipanion+](http://itunes.apple.com/ca/app/wikipanion-plus/id290613987?mt=8), [iReddit](http://itunes.apple.com/ca/app/ireddit/id302732279?mt=8), [Gowalla](http://itunes.apple.com/ca/app/gowalla/id304510106?mt=8), [TouchTerm Pro SSH](http://itunes.apple.com/ca/app/touchterm-pro-ssh/id296468040?mt=8), [Tweetie](http://itunes.apple.com/ca/app/tweetie-2/id333903271?mt=8), [Plants vs. Zombies](http://itunes.apple.com/ca/app/plants-vs-zombies/id350642635?mt=8), [Unblock Me](http://itunes.apple.com/ca/app/unblock-me/id315021242?mt=8) et [Ego](http://ego-app.com/).
+
+## L’unique outil dont vous ne pourriez absolument vous passer, et pourquoi?
+
+Je n’aime pas penser qu’il peut y avoir **un seul outil** dans mon setup qui ne pourrait être remplacé. J’aime penser qu’étant donné que je travaille avec des technologies et des langages de programmation ouverts, je ne suis lié avec aucun logiciel propriétaire pour faire mon travail. Tant que j’ai un système de fichiers respectant le [standard POSIX](https://secure.wikimedia.org/wikipedia/fr/wiki/POSIX), un éditeur de code qui peut lire et écrire des fichiers, un navigateur Web qui peut m’afficher des URLs dont le contenu est servi en `text/html` et un serveur Web qui gère des requêtes HTTP, je suis satisfait!

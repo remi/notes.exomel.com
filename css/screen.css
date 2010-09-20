@@ -232,6 +232,10 @@ code {
   font-family: Monaco, Consolas, monospace;
 }
 
+h1 code {
+  font-size: 95%;
+}
+
 .article-content code {
   font-size: 9pt;
 }
