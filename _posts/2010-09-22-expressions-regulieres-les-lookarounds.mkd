@@ -1,0 +1,36 @@
+---
+layout: post
+titre: "Expressions régulières : les <em>lookaround</em>s"
+excerpt: Méconnu ou sous-estimée, le concept des <em>lookaround</em>s dans les expressions régulières est une fonctionnalité très puissante lorsqu’on veut capturer des portions d’expression avec du contexte positif ou négatif.
+couleur: "rgb(130,0,38)"
+---
+
+Une des fonctionnalités des expressions régulières les plus méconnues est le concept des *lookaround*s. Leur fonction principale consiste à capturer une certaine partie de l’expression seulement si elle est (*positive*) ou si elle n’est pas (*negative*) précédée par (*lookbehind*) ou suivie (*lookahead*) par une autre expression. Cela s’avère être très pratique lorsqu’on veut capturer une expression dans un contexte de négation.
+
+Par exemple, si je veux chercher tous les nombres entiers qui ne sont pas précédés par une espace, il est facile de faire :
+
+{% highlight ruby %}
+# facile!
+/[^\s][0-9]+/
+{% endhighlight %}
+
+Au-delà d’un caractère négatif, cela ne fonctionne plus. Qu’arrive-t-il si, par exemple, on veut chercher tous les nombres entiers qui ne sont pas précédés par la chaine `"Prix: "` ?
+
+{% highlight ruby %}
+# oups, ça ne fonctionne pas…
+/[^P][^r][^i][^x][^:][^\s][0-9]+/
+{% endhighlight %}
+
+C’est donc là qu’utiliser un “*negative lookbehind*” se révèle être la meilleure solution :
+
+{% highlight ruby %}
+# on capture tous les nombres qui ne sont pas précédés par "Prix: " ou par un autre chiffre.
+/(?<!Prix:\s|[0-9])[0-9]+/
+
+# dans Vim, on utilisera :
+/\v(Prix:\s|[0-9])@<![0-9]+
+{% endhighlight %}
+
+Ce n’est pas la fonctionnalité que j’utilise le plus souvent lorsque je travaille avec des expressions régulières (j’espère qu’après avoir écrit ce billet, je l’utiliserai encore davantage) mais elle m’a fait sauvé bien du temps ces dernières semaines.
+
+Connaissez-vous d’autres exemples concrets dans lesquels il serait pertinent d’utiliser un *lookaround* ?
