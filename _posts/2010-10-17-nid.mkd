@@ -55,8 +55,8 @@ DataMapper.setup :default, ENV['DATABASE_URL']
 Maintenant que toutes les modifications sont faites, on peut *committer* nos changements et les *pusher* à la branche `heroku` :
 
 {% highlight bash %}
-$ git a config/nid.yml nid.rb
-$ git ci -m "Add custom configuration"
+$ git add config/nid.yml nid.rb
+$ git commit -m "Add custom configuration"
 $ git push heroku master
 -----> Heroku receiving push
 -----> Rack app detected
