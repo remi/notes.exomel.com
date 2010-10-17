@@ -1,0 +1,101 @@
+---
+layout: post
+titre: Nid
+excerpt: Ce qui débuta par une expérimentation de DataMapper en combinaison avec Sinatra se transforma en une application Web personnelle qui permet d’héberger, de filtrer et de visualiser ses <em>tweets</em> comme on le désire.
+couleur: "rgb(70,0,130)"
+---
+
+J’ai installé [Tweetnest](http://pongsocket.com/tweetnest/) sur [twitter.remiprevost.com](http://twitter.remiprevost.com) il y a quelques mois. Je trouvais le concept très intéressant : héberger ses propres *tweets* et pouvoir les visualiser par année/mois/jour. Retrouver le contrôle sur ses propres données.
+
+Il y a quelques jours, j’ai également voulu expérimenter avec [DataMapper](http://datamapper.org), après avoir été obligé d’utiliser ActiveRecord depuis quelques mois avec [Ruby on Rails](http://rubyonrails.org). Je voulais également pousser un peu plus loin mon utilisation de [Sinatra](http://sinatrarb.com), avec lequel je n’avais monté qu’un très petit site, [mon portfolio](http://exomel.com).
+
+J’ai eu l’idée de combiner les deux idées; et ce qui en a résulté s’appelle [Nid](http://github.com/remiprev/nid).
+
+[![Capture d’écran de Nid](/img/billets/nid-1.jpg)](http://nid.heroku.com)
+
+Le projet est très peu développé, mais j’ai déjà installé une version fonctionnelle sur [nid.heroku.com](http://nid.heroku.com). Il m’a été très facile de déployer l’application sur [Heroku](http://heroku.com) puisqu’elle utilise [Bundler](http://gembundler.com) pour gérer ses dépendances.
+
+## Installation
+
+Vous voulez déployer votre propre instance de Nid sur Heroku? Très facile. Il suffit de cloner le *repository* Git :
+
+{% highlight bash %}
+$ git clone git://github.com/remiprev/nid.git
+{% endhighlight %}
+
+Ensuite, on crée notre application sur Heroku :
+
+{% highlight bash %}
+$ heroku create nid-mirego
+Creating nid-exemple.......... done
+Created http://nid-exemple.heroku.com/ | git@heroku.com:nid-exemple.git
+{% endhighlight %}
+
+Ensuite, on doit copier `nid.defaults.yml` vers `nid.yml`, configurer une [nouvelle application Twitter](http://dev.twitter.com/apps/new) et remplir les 4 valeurs manquantes dans le fichier de configuration :
+
+{% highlight bash %}
+$ cd config
+$ cp nid.defaults.yml nid.yml
+$ cat nid.yml
+twitter:
+  consumer_key: 
+  consumer_secret: 
+  access_token: 
+  access_secret: 
+{% endhighlight %}
+
+Par la suite, on doit modifier le fichier `nid.rb` pour lui dire d’utiliser la base de données fournie par Heroku :
+
+{% highlight ruby %}
+# DataMapper.setup :default, 'postgres://localhost/nid_development'
+DataMapper.setup :default, ENV['DATABASE_URL']
+{% endhighlight %}
+
+Maintenant que toutes les modifications sont faites, on peut *committer* nos changements et les *pusher* à la branche `heroku` :
+
+{% highlight bash %}
+$ git a config/nid.yml nid.rb
+$ git ci -m "Add custom configuration"
+$ git push heroku master
+-----> Heroku receiving push
+-----> Rack app detected
+-----> Gemfile detected, running Bundler version 1.0.0
+       ...
+       ...
+       ...
+-----> Launching.... done
+       http://nid-exemple.heroku.com deployed to Heroku
+{% endhighlight %}
+
+Heroku va déployer l’application en installant d’abord toutes les *gems* qu’elle nécéssite. Lorsque l’opération est complétée, l’application fonctionne, mais la base de données est toujours vide.
+
+{% highlight bash %}
+$ heroku rake import
+...
+...
+...
+"Sleeping for 10 seconds..."
+{% endhighlight %}
+
+Si vous apercevez cette ligne, c’est signe que des *tweets* ont déjà commencé à peupler votre base de données! Vous pouvez naviguer vers l’URL de votre application (*http://votre-application.heroku.com*) pour le constater. Par contre, si vous apercevez cette ligne :
+
+{% highlight bash %}
+rake aborted!
+(502): Bad Gateway
+{% endhighlight %}
+
+C’est signe que l’API de Twitter éprouve des problèmes. Il suffit de relancer la commande `heroku rake import` jusqu’à ce que cette dernière se termine normalement, sans instruction `rake aborted!`. Le processus d’importation importe toujours des *tweets* plus anciens que ceux déjà dans la base de données; il n’y a donc pas de risque d’obtenir des *tweets* en double.
+
+Lorsque tous vos tweets seront importés, il ne restera plus qu’à les mettre à jour lorsque vous en posterez de nouveaux. Cette méthode n’est pas encore automatisée (au moment d’écrire ces lignes!) et doit être effectuée à l’aide de la commande suivante :
+
+{% highlight bash %}
+$ heroku rake update
+{% endhighlight %}
+
+Encore une fois, cette commande ne créera pas de *tweets* dupliqués.
+
+## Développement
+
+Nid est loin d’être une application parfaite. Beaucoup de lacunes sont présentes au niveau visuel, fonctionnel, performance, etc. Par contre, je crois qu’elle a un bon potentiel, surtout en ce qui a trait à sa facilité (pour une application Ruby!) de déploiement.
+
+Si vous désirez contribuer au projets, n’hésitez pas à m’envoyer une “*pull request*” via la [page du projet sur GitHub](http://github.com/remiprev/nid).
