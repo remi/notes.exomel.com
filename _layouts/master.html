@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <title>{{ page.titre | strip_html }} — Les notes de Rémi Prévost</title>
   <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+  <link href="http://fonts.googleapis.com/css?family=Lato:light,regular,regularitalic,lightitalic,bold&amp;v1" media="all" rel="stylesheet" type="text/css">
   <link rel="stylesheet" href="/css/screen.css" type="text/css" media="screen" />
-  <link href='http://fonts.googleapis.com/css?family=Droid+Sans:regular,bold' rel='stylesheet' type='text/css'>
   <link rel="alternate" href="/atom.xml" title="Les notes de Rémi Prévost — dernières notes" type="application/atom+xml" />
   <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
   <script type="text/javascript">var _gaq = _gaq || []; _gaq.push(['_setAccount', 'UA-18605349-1']); _gaq.push(['_trackPageview']); (function() { var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true; ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js'; var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s); })();</script>
@@ -17,20 +17,16 @@
         <strong><a href="/">Les notes de Rémi Prévost</a></strong><br />
         <span>vim, git, ruby, html5 et autres buzzwords.</span>
       </p>
-      <p class="feed">
-        <a href="/atom.xml">Fil Atom</a>
-      </p>
       <hr />
     </header>
-    <div id="content" {% if page.couleur %} style="border-top: 20px solid {{ page.couleur }};" {% endif %}>
+    <div id="content">
       {{ content }}
     </div>
     <footer>
       <hr />
-      <p>© 2010 <strong><a href="http://remiprevost.com">Rémi Prévost</a></strong>. Propulsé par <a href="http://github.com/mojombo/jekyll">jekyll</a>, <a href="http://disqus.com">disqus</a> et <a href="http://nginx.org">nginx</a>.</p>
+      <p>© 2010-2011 <strong><a href="http://remiprevost.com">Rémi Prévost</a></strong>. Propulsé par <a href="http://github.com/mojombo/jekyll">jekyll</a> et <a href="http://nginx.org">nginx</a>.</p>
     </footer>
   </div>
-  <script type="text/javascript">var disqus_shortname = 'notes-remiprevost'; (function () { var s = document.createElement('script'); s.async = true; s.src = 'http://disqus.com/forums/notes-remiprevost/count.js'; (document.getElementsByTagName('HEAD')[0] || document.getElementsByTagName('BODY')[0]).appendChild(s); }()); </script>
 </body>
 </html>
 {% comment %} vim: set et ts=2 sts=2 sw=2 fdm=marker fenc=utf-8 ft=liquid: {% endcomment %}
