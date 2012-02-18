@@ -7,7 +7,6 @@ titre: Accueil
       <article>
         <h1>
           <a href="{{ post.url }}">{{ post.titre }}</a>
-          <time pubdate datetime="{{ post.date | date:"%Y-%m-%d"}}">{{ post.date | date:"%e %B %Y" }}</time>
         </h1>
       </article>
       {% endfor %}
