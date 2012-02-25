@@ -1,9 +1,7 @@
 destination: ./_site
 pygments:    true
 markdown:    rdiscount
-exclude:     Rakefile
+exclude:     Rakefile Gemfile Gemfile.lock
 permalink:   /:year/:month/:title.html
 rdiscount:
   smart:     true
-
-url:         http://notes.remiprevost.com
