@@ -1,0 +1,12 @@
+---
+layout: post
+titre: "Web à Québec 2012 — Introduction à Ruby"
+---
+
+J’ai eu la chance de présenter « [Introduction à Ruby](http://webaquebec.org/programmation/14/) » lors de l’évènement [Web à Québec](http://webaquebec.org) 2012. Ma présentation s’adressait en grande partie aux programmeurs qui n’avaient pas d’expérience avec le langage, mais qui se débrouillent en PHP, Python, Java, etc.
+
+La présentation est [disponible](http://speakerdeck.com/u/remi/p/introduction-a-ruby) sur Speaker Deck et le code source de l’application utilisée en exemple l’[est également](https://github.com/remiprev/waq-2012) sur GitHub.
+
+<script src="http://speakerdeck.com/embed/4f466aacf91a2400220202b4.js"></script>
+
+J’espère pouvoir redonner cette présentation ailleurs dans le futur et ainsi faire en sorte que la communauté Ruby au Québec continue de croître au rhythme où elle le fait présentement.
