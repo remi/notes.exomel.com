@@ -3,6 +3,7 @@ layout: master
 section: single
 ---
       <article>
+        <time>{{ page.date | date: "%A, le %e %B %Y" }}</time>
         <h1>{{ page.titre }}</h1>
         <div class="article-content">
           {{ content }}
