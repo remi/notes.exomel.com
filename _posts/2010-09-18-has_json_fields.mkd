@@ -1,12 +1,6 @@
 ---
 layout: post
-titre: Un type de champ MySQL magique avec JSON
-excerpt: Présentation d’un plugin Ruby on Rails permettant de stocker des hachages Ruby dans le champ d’un modèle <code>ActiveRecord</code> sous forme de chaine JSON, en convertissant automatiquement à la lecture et à l’écriture.
-couleur: "rgb(0,72,130)"
-categories:
-- ruby
-- json
-- rails
+titre: "Un type de champ MySQL magique avec JSON"
 ---
 
 J’ai développé le plugin `has_json_fields` en travaillant sur [Quincaillerie sucrée](http://www.quincailleriesucree.com) où il était nécessaire de stocker un hachage arbitraire (la variable `params` de Rails qui contient des informations fournies par [PayPal](http://www.paypal.com) lors de notifications *IPN*) dans la base de données.

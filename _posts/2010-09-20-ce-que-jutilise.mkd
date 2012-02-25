@@ -1,13 +1,6 @@
 ---
 layout: post
-titre: J’utilise ça
-excerpt: Les périphériques, logiciels et utilitaires que j’utilise chaque jour pour accomplir mon travail.
-couleur: "rgb(130,67,0)"
-categories:
-- vim
-- firefox
-- postbox
-- homebrew
+titre: "J’utilise ça"
 ---
 
 Ce billet devait à l’origine être publié sur [utilise.ca](http://utilise.ca), un site que j’ai créé il y a quelques mois (en m’inspirant fortement du site [The Setup](http://usesthis.com)) dans le but de partager les outils utilisés au quotidien par des *geeks* francophones. J’ai toujours été hésitant à publier ce billet sur le site, étant donné que je suis son créateur. J’ai donc décidé de le publier sur ce blogue puisqu’il s’agit de mon espace personnel, et non d’un projet indépendant.

@@ -1,8 +1,6 @@
 ---
 layout: post
-titre: Nid
-excerpt: Ce qui débuta par une expérimentation de DataMapper en combinaison avec Sinatra se transforma en une application Web personnelle qui permet d’héberger, de filtrer et de visualiser ses <em>tweets</em> comme on le désire.
-couleur: "rgb(70,0,130)"
+titre: "Nid"
 ---
 
 J’ai installé [Tweetnest](http://pongsocket.com/tweetnest/) sur [twitter.remiprevost.com](http://twitter.remiprevost.com) il y a quelques mois. Je trouvais le concept très intéressant : héberger ses propres *tweets* et pouvoir les visualiser par année/mois/jour. Retrouver le contrôle sur ses propres données.
