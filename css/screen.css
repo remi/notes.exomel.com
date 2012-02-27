@@ -210,6 +210,9 @@ h1 code {
 }
 
 .article-content code {
+  font-size: 10pt;
+}
+.article-content pre code {
   font-size: 9pt;
 }
 
