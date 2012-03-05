@@ -13,7 +13,7 @@ Croyant que le comportement par défaut de Rails (ne pas forcer de *whitelist* v
 
 L’*issue* est rapidement balayée du revers de la main par l’équipe de Rails, croyant qu’il est la responsabilité du développeur de gérer lui-même les attributs disponibles (ou non disponibles) lors d’un *mass assignment*.
 
-Pour prouver à quelle point certaines applications Rails peuvent être vulnérables, Egor trouve une faille sur GitHub (une application Rails 2.3.X) et [l’exploite](https://github.com/rails/rails/issues/5239). Son compte GitHub est suspendu (mais restauré quelques heures plus tard) et s’en suit un immense débat avec comme question principale « *C’est la faute à qui?* ».
+Pour prouver à quelle point certaines applications Rails peuvent être vulnérables, Egor trouve une faille sur GitHub (une application Rails 2.3.X) reliée au *mass assignment* et à une vérification des droits d’accès absente et [l’exploite](https://github.com/rails/rails/issues/5239). Son compte GitHub est suspendu (mais restauré quelques heures plus tard) et s’en suit un immense débat avec comme question principale « *C’est la faute à qui?* ».
 
 ## À qui la faute?
 
