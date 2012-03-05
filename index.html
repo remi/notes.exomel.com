@@ -5,8 +5,13 @@ titre: Accueil
 ---
       {% for post in site.posts %}
       <article>
+        <time>{{ post.date | date_to_string }}</time>
         <h1>
           <a href="{{ post.url }}">{{ post.titre }}</a>
         </h1>
       </article>
       {% endfor %}
+
+      <div class="site-meta">
+        Ce site est un regroupemeent de notes écrites par <a href="http://exomel.com">Rémi Prévost</a>, un développeur Web habitant la ville de Québec au Canada.
+      </div>

@@ -39,11 +39,11 @@ Voici la technique que j’utilise dans mes contrôleurs :
 
 {% highlight ruby %}
 def create
-    @book = current_user.books.create({
+  @book = current_user.books.create({
     :title => params[:book][:title],
     :lang => params[:book][:lang]
-    })
+  })
 end
 {% endhighlight %}
-    
+
 Il y a beaucoup d’autres techniques qui permettent de faire la même chose (en évitant de se répéter…) mais avec ça, on s’assure que chaque action traite uniquement les paramètres auxquels on s’attend de recevoir.
