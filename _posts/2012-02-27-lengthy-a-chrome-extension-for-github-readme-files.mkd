@@ -3,6 +3,8 @@ layout: post
 titre: "Lengthy: a Chrome extension for GitHub <code>README</code> files"
 ---
 
+<div class="note"><em>Cette note est écrite en anglais, c’est voulu.</em></div>
+
 Over the weekend, I found myself reading [this page](https://github.com/rspec/rspec-rails). A lot. And one thing that really started to annoy me is that `README` files like the one on the page are really hard to browse if there are over two or three sections in them.
 
 So, I wrote [Lengthy](https://github.com/remiprev/lengthy), a [Google Chrome](https://www.google.com/chrome)/[Chromium](http://www.chromium.org/) extension that adds a table of contents to `README` files on [GitHub](https://github.com/). All types of `README` files are supported (Markdown, Textile, RDoc, etc) because the extension interacts with the HTML content on the page.

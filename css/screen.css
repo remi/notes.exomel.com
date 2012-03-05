@@ -272,6 +272,18 @@ article time {
   color: rgba(0,0,0,0.6);
 }
 
+div.note {
+  background: rgba(255, 253, 194, 0.2);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  font-size: 75%;
+  padding: 8px;
+  margin: 20px 0;
+}
+
+div.note em {
+  font-style: normal;
+}
+
 #speakerdeck_presentation_wrapper_4f466aacf91a2400220202b4 {
   margin: 0 0 15px;
 }
