@@ -1,0 +1,49 @@
+---
+layout: post
+titre: "Rails, GitHub et Egor"
+---
+
+Beaucoup de choses ont été écrites sur les [incidents récents](https://github.com/blog/1068-public-key-security-vulnerability-and-mitigation) concernant [GitHub](https://github.com) et [Ruby on Rails](http://rubyonrails.org). J’avais envie d’ajouter mon point de vue personnel sur les évènements.
+
+## Les évènements
+
+Un développeur russe, [Egor Homakov](https://github.com/homakov), a découvert il y a quelques jours qu’en utilisant le *mass assignment* dans Rails sur des modèles qui ne définissent pas de *attr_accessible*, il était possible de modifier la valeur de n’importe quel attribut d’une instance de ce modèle (si on est autorisé à modifier l’item en question). Ce n’était pas vraiment une découverte puisque que c’est l’essence même du *mass assignment*.
+
+Croyant que le comportement par défaut de Rails (ne pas forcer de *whitelist* vide par défaut pour tous les modèles) n’est pas du tout sécure, il [ouvre une *issue*](https://github.com/rails/rails/issues/5228) sur le projet Rails sur GitHub.
+
+L’*issue* est rapidement balayée du revers de la main par l’équipe de Rails, croyant qu’il est la responsabilité du développeur de gérer lui-même les attributs disponibles (ou non disponibles) lors d’un *mass assignment*.
+
+Pour prouver à quelle point certaines applications Rails peuvent être vulnérables, Egor trouve une faille sur GitHub (une application Rails 2.3.X) et [l’exploite](https://github.com/rails/rails/issues/5239). Son compte GitHub est suspendu (mais restauré quelques heures plus tard) et s’en suit un immense débat avec comme question principale « *C’est la faute à qui?* ».
+
+## À qui la faute?
+
+Selon moi, tous ces groupes et personnes ont une responsabilité par rapport à ce qui s’est passé :
+
+* **Egor Homakov** (pour ne pas avoir rapporter la faille à GitHub)
+* **L’équipe de Ruby on Rails** (pour ne pas forcer un réglage de sécurité)
+* **GitHub** (pour la faille de sécurité)
+
+Cependant, ils sont responsables à des niveaux très différents.
+
+**Egor Homakov** a découvert deux choses : un problème de sécurité dans Rails (un réglage qui devrait être activé par défaut mais qui ne l’est pas) et une faille de sécurité dans l’application GitHub. Cependant, il a seulement choisi de rapporter le premier item. S’il avait également rapporté la faille à GitHub (via leur formulaire de contact), ils auraient pu la corriger rapidement et rien de cela ne se serait produit.
+
+**L’équipe de Ruby on Rails** s’est [rapidement ajustée](https://github.com/rails/rails/commit/641a4f62405cc2765424320932902ed8076b5d38) en changeant la valeur par défaut de `config.active_record.whitelist_attributes` pour que le développeur n’ait pas le choix de définir les attributs *safe* à utiliser lors d’un *mass-assignment*. Cela aurait probablement dû être fait il y a longtemps.
+
+**GitHub** doit aussi assumer sa part de responsabilité pour avoir mis en production du code dont la sécurité ne correspond pas au niveau auquel on s’attend d’un logiciel pour entreprises.
+
+## La morale
+
+Ne vous fiez **jamais** à ce qui est passé en paramètres HTTP pour bâtir aveuglément vos structures de données. Soyez paranoïaque en vous disant qu’il est extrêmement facile d’ajouter des paramètres supplémentaires à une requête HTTP.
+
+Voici la technique que j’utilise dans mes contrôleurs :
+
+{% highlight ruby %}
+def create
+    @book = current_user.books.create({
+    :title => params[:book][:title],
+    :lang => params[:book][:lang]
+    })
+end
+{% endhighlight %}
+    
+Il y a beaucoup d’autres techniques qui permettent de faire la même chose (en évitant de se répéter…) mais avec ça, on s’assure que chaque action traite uniquement les paramètres auxquels on s’attend de recevoir.
