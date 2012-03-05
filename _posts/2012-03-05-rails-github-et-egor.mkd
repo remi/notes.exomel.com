@@ -19,7 +19,7 @@ Pour prouver à quelle point certaines applications Rails peuvent être vulnéra
 
 Selon moi, tous ces groupes et personnes ont une responsabilité par rapport à ce qui s’est passé :
 
-* **Egor Homakov** (pour ne pas avoir rapporter la faille à GitHub)
+* **Egor Homakov** (pour ne pas avoir rapporté la faille à GitHub)
 * **L’équipe de Ruby on Rails** (pour ne pas forcer un réglage de sécurité)
 * **GitHub** (pour la faille de sécurité)
 
