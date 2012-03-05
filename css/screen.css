@@ -322,8 +322,8 @@ div.note em {
   background: #26282C;
   font-size: 10pt;
   margin: 0 0 1em;
-  border: 1px solid #f6f6f6;
   text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
+  border-radius: 2px;
 }
 
 .article-content .highlight pre {
