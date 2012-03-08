@@ -1,0 +1,20 @@
+---
+layout: post
+titre: "Timestamps relatifs et absolus"
+---
+
+Le moyen le plus utilisé pour indiquer une date et une heure dans un contexte d’application Web est probablement le *timestamp relatif*.
+
+![Exemple de timestamps relatifs sur GitHub](/img/billets/github-feed.png)
+
+Le problème avec ces *timestamps* est que la notion de temps relatif facile à calculer ne couvre pas une grande période pour beaucoup de gens (pour moi en tout cas). **Deux heures**, c’est rapide et facile à calculer. **15 heures**… pas vraiment. **Il y a une journée**… ça pourrait être hier à 8h05, 11h35 ou 17h42.
+
+Heureusement, beaucoup d’applications (comme [GitHub](https://github.com), montré dans la capture d’écran) fournissent le *timestamp absolu* à ceux qui veulent connaitre la date exacte à laquelle un évènement s’est produit en utilisant du code similaire à ceci :
+
+{% highlight html %}
+<time datetime="2012-03-08T10:39:24Z" title="2012-03-08 10:39:24">5 hours ago</time>
+{% endhighlight %}
+    
+En utilisant l’élément `TIME` d’HTML5, on fournit à l’utilisateur une manière alternative de consulter la date (via l’attribut `title`) et on ajoute des méta-données permettant aux robots de *parser* la date facilement (via l’attribut `datetime`).
+
+Ça prend 30 secondes à implanter et ça vous assurera de faire plaisir aux *power users* qui ne se contentent pas des estimations relatives.
