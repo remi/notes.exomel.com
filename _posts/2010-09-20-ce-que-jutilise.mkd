@@ -3,6 +3,8 @@ layout: post
 titre: "J’utilise ça"
 ---
 
+<div class="note"><em>Cette note a été rédigée en 2010 et contient plusieurs informations qui ne sont plus véridiques. Comme je ne veux pas la mettre à jour à chaque fois que change d’outils, je préfère la laisser au même état que lorsque je l’ai écrite. À lire à vos propres risques et périls!</em></div>
+
 Ce billet devait à l’origine être publié sur [utilise.ca](http://utilise.ca), un site que j’ai créé il y a quelques mois (en m’inspirant fortement du site [The Setup](http://usesthis.com)) dans le but de partager les outils utilisés au quotidien par des *geeks* francophones. J’ai toujours été hésitant à publier ce billet sur le site, étant donné que je suis son créateur. J’ai donc décidé de le publier sur ce blogue puisqu’il s’agit de mon espace personnel, et non d’un projet indépendant.
 
 ## Qui êtes-vous et que faites-vous dans la vie?
