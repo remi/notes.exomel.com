@@ -14,7 +14,7 @@ end # }}}
 
 desc 'Build and deploy'
 task :deploy => :build do # {{{
-  sh 'rsync --checksum -rtzh --progress --delete _site/ sun:/var/www/notes.remiprevost.com/'
+  sh 'rsync --checksum -rtzh --progress --delete _site/ sun:/var/www/notes.exomel.com/'
   sh 'say -v zarvox "deploy is now complete."'
 end # }}}
 
