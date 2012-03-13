@@ -34,7 +34,7 @@ HERE
 
   print "Entrer le slug de la note: "
   slug = STDIN.gets.chomp
-  file = "_posts/#{Time.now.strftime("%y-%m-%d")}-#{slug}.mkd"
+  file = "_posts/#{Time.now.strftime("%Y-%m-%d")}-#{slug}.mkd"
   sh "echo '#{content}' >> #{file}"
   sh "open '#{file}'"
 

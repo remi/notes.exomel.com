@@ -1,0 +1,48 @@
+---
+layout: post
+titre: "Haml et Sass pour livrables statiques"
+---
+
+Dans le cadre d’un mandat sur lequel je travaille, je dois livrer des gabarits HTML accompagnés d’une feuille de styles. Et comme je travaille avec [Haml](http://haml-lang.com) depuis près de deux ans, revenir au HTML *plain* me semblait être un pas en arrière.
+
+Je veux continuer à être productif avec Haml et [Sass](http://sass-lang.com), mais ne pas avoir à créer des gabarits dans une application [Sinatra](http://sinatrarb.com), [Rails](http://rubyonrails.org) ou [Padrino](http://padrinorb.com). Un simple `haml` suffit :
+
+{% highlight bash %}
+$ haml --double-quote-attributes --format=html5 input.haml output.html
+{% endhighlight %}
+
+Même chose pour un fichier Sass :
+
+{% highlight bash %}
+$ scss --style=expanded input.scss css/output.css
+{% endhighlight %}
+
+C’est bien beau, mais avoir ces commandes ne font que générer *une seule fois* les livrables. Pas très pratique lorsqu’on est en mode « développement ». Il est possible d’utiliser l’option `--watch` avec Sass, mais pas avec Haml.
+
+J’utilise donc une gem, [`watchr`](https://github.com/mynyml/watchr), qui permet de définir des règles reliées au système de fichiers. Lorsqu’un fichier est modifié et qu’il correspond à une règle, un bloc de code Ruby est exécuté.
+
+Dans notre cas, nous voulons générer les fichiers HTML et CSS lorsque leur équivalent Haml et Sass a été modifié. Et pour ne pas polluer notre dossier de livrable (le dossier racine), on place les fichiers à surveiller dans un dossier `src` (qu’on peut même inclure avec notre livrable) :
+
+{% highlight ruby %}
+# Contenu de `static.watchr`
+watch /src\/haml\/(?<basename>.+).haml/  do |match|
+  puts "Regenerating Haml: #{match}"
+  system "haml --double-quote-attributes --format=html5 #{match} #{match[:basename]}.html"
+end
+
+watch /src\/sass\/(?<basename>.+).scss/ do |match|
+  puts "Regenerating Sass: #{match}"
+  system "scss --style=expanded #{match} css/#{match[:basename]}.css"
+end
+{% endhighlight %}
+
+Après avoir installé la gem, on peut utiliser l’exécutable `watchr` sur notre fichier :
+
+{% highlight bash %}
+$ watchr static.watchr
+…
+Regenerating Haml: src/index.haml
+Regenerating Sass: src/css/screen.scss
+{% endhighlight %}
+
+On a maintenant un dossier racine qui contient des fichiers HTML et CSS ainsi qu’un dossier `src` qui contient nos fichiers « source ».

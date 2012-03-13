@@ -328,6 +328,7 @@ div.note em {
 
 .article-content .highlight pre {
   padding: 10px 12px;
+  overflow: auto;
 }
 
 .highlight  { background: #1d1f21; color: #c5c8c6 }
