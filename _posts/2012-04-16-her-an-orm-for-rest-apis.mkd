@@ -1,0 +1,87 @@
+---
+layout: post
+titre: "Her, an ORM for REST APIs"
+---
+
+<div class="note"><em>Cette note est écrite en anglais, c’est voulu. Hello, english-speaking friends!</em></div>
+
+Over the last few years, I’ve worked with Web applications that use a REST API as backend. I’ve also worked on regular Web applications that interact with a database (usually MySQL or MongoDB) backend. I quickly realized that one of things I missed the most while working with the first kind is the ORM. So I decided to build one.
+
+I looked through existing solutions (mostly just [ActiveResource](http://api.rubyonrails.org/classes/ActiveResource/Base.html), which turns out is not actively maintained anymore…) and found out it wasn’t as flexible as I wanted it to be. Lots of hard-coded stuff, no way to cleanly hook my own code in low-level methods, etc.
+
+[**Her**](https://github.com/remiprev/her) is an ORM that was specifically designed to work with REST APIs. Well, basically it does two things: 1) mapping HTTP responses to Ruby objects (through JSON) and 2) adding methods to Ruby objects that trigger HTTP requests (with [Faraday](https://github.com/technoweenie/faraday)). It handles the basic ORM stuff and much more. First, initialization is easy:
+
+{% highlight ruby %}
+Her::API.setup :base_uri => "https://api.example.com"
+{% endhighlight %}
+
+The [README](https://github.com/remiprev/her/blob/master/README.md) file covers all supported features, but here a few ones:
+
+## CRUD (create, retrieve, update, delete)
+
+Like every ORM, Her supports basic find, create, save and destroy methods. Each of these methods triggers an HTTP request and handles the response correctly.
+
+{% highlight ruby %}
+class User
+  include Her::Model
+end
+
+# Will call "GET /users/1"
+@user = User.find(1) # => #<User(users/1) id=1 name="Tobias Fünke">
+
+# Will call "POST /users&name=Maeby+Fünke"
+@new_user = User.create(:name => "Maeby Fünke") # => #<User(users/2) id=2 name="Maeby Fünke">
+
+# Will call "PUT /users/2&name=Maeby+Fünke&gender=F"
+@new_user.gender = "F"
+@new_user.save
+
+# Will call "DELETE /users/1"
+User.delete_existing(1) # @user.find(1).delete would have worked too, but would have triggered 2 requests
+{% endhighlight %}
+
+## Relationships and associations
+
+Her also handles basic relationships through the `has_many`, `belongs_to` and `has_one` methods. It supports embedded relationship data in the resource response but will make an extra HTTP request to fetch it if it’s not included (providing that there’s an API endpoint for it).
+
+{% highlight ruby %}
+class User
+  include Her::Model
+  has_many :comments
+end
+
+class Comment
+  include Her::Model
+end
+
+# With embedded data (no extra HTTP request)
+@user = User.find(1) # Let’s say GET /users/1 returns { :id => 1, :name => "Rémi Prévost", :comments => [{ :id => 2, :body => "Hello." }]
+@user.comments # => [#<Comment(comments/2) id=2 body="Hello">]
+
+# Without embedded data
+@user = User.find(1) # Let’s say GET /users/1 returns { :id => 1, :name => "Rémi Prévost" }
+@user.comments # => [#<Comment(comments/2) id=2 body="Hello">] fetched from "GET /users/1/comments"
+{% endhighlight %}
+
+## Middleware
+
+One of nicest about using [Faraday](https://github.com/technoweenie/faraday) as the HTTP layer is that we can leverage its middleware and add custom behavior to the ORM. For example, Her currently doesn’t support authentication — but it’s very easy to add your own:
+
+{% highlight ruby %}
+class MyAuthentication < Faraday::Middleware
+  def call(env)
+    env[:request_headers]["X-API-Token"] = "foobar"
+    @app.call(env)
+  end
+end
+
+Her::API.setup :base_uri => "https://api.example.com", :add_middleware => MyAuthentication
+{% endhighlight %}
+
+Now each request sent by Her will have a custom `X-API-Token` HTTP header.
+
+## What’s next?
+
+Well first, it needs more documentation. The only documentation we currently have is [YARD-generated](http://rubydoc.info/gems/her/0.1.7/frames), which is absolutely fine for me — but it needs more content.
+
+In the meantime, feel free to report bugs, improve the code and suggest features in [the issues](https://github.com/remiprev/her/issues). I’m quite proud of the `spec` directory for this project, so contributing without breaking anything should be relatively easy.
