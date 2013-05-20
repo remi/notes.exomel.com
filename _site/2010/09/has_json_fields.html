@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="fr-ca">
+<head>
+  <!-- This is Heroku, yay. -->
+  <meta charset="UTF-8">
+  <title>Un type de champ MySQL magique avec JSON — Les notes de Rémi Prévost</title>
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+  <link href="http://fonts.googleapis.com/css?family=Lato:light,regular,regularitalic,lightitalic,bold&amp;v1" media="all" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/screen.css" type="text/css" media="screen" />
+  <link rel="alternate" href="/atom.xml" title="Les notes de Rémi Prévost — dernières notes" type="application/atom+xml" />
+  <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  <script type="text/javascript">var _gaq = _gaq || []; _gaq.push(['_setAccount', 'UA-9062654-4']); _gaq.push(['_trackPageview']); (function() { var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true; ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js'; var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s); })();</script>
+</head>
+<body class="template-single">
+  <div id="wrap">
+    <header class="group">
+      <p class="main">
+        <strong><a href="/">Les <em>notes</em> de <em>Rémi Prévost</em></a></strong><br />
+        <span>vim, git, ruby, html5 et autres buzzwords.</span>
+      </p>
+      <hr />
+    </header>
+    <div id="content">
+            <article>
+        <time>Samedi, le 18 septembre 2010</time>
+        <h1>Un type de champ MySQL magique avec JSON</h1>
+        <div class="article-content">
+          <p>J’ai développé le plugin <code>has_json_fields</code> en travaillant sur <a href="http://www.quincailleriesucree.com">Quincaillerie sucrée</a> où il était nécessaire de stocker un hachage arbitraire (la variable <code>params</code> de Rails qui contient des informations fournies par <a href="http://www.paypal.com">PayPal</a> lors de notifications <em>IPN</em>) dans la base de données.</p>
+
+<p>Comme il est préférable de stocker ces informations en format texte (car la structure du hachage n’est jamais la même), JSON m’a semblé être la meilleure solution. Cependant, il peut être fastidieux de toujours convertir les données lorsqu’on les modifie ou que l’on veut accéder à une clé précise :</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="nb">require</span> <span class="s1">&#39;json&#39;</span>
+<span class="k">class</span> <span class="nc">OrdersController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+
+  <span class="k">def</span> <span class="nf">show</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="no">Order</span><span class="o">.</span><span class="n">get</span> <span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="no">JSON</span><span class="o">.</span><span class="n">parse</span> <span class="n">order</span><span class="o">.</span><span class="n">paypal_metadata</span>
+    <span class="nb">puts</span> <span class="n">metadata</span><span class="o">[</span><span class="s2">&quot;address_name&quot;</span><span class="o">]</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">update</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="no">Order</span><span class="o">.</span><span class="n">get</span> <span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">:foo</span> <span class="o">=&gt;</span> <span class="ss">:bar</span> <span class="p">}</span>
+    <span class="n">order</span><span class="o">.</span><span class="n">paypal_metadata</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">to_json</span>
+    <span class="n">order</span><span class="o">.</span><span class="n">save</span>
+  <span class="k">end</span>
+
+<span class="k">end</span>
+</code></pre></div>
+
+
+<p>C’est donc pour éviter toutes ces conversions manuelles que j’ai décidé de créer <code>has_json_fields</code>, qui n’est en fait qu’un très simple plugin qui n’ajoute qu’une seule méthode éponyme à tous les objets.</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="k">class</span> <span class="nc">Order</span> <span class="o">&lt;</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Base</span>
+  <span class="n">has_json_fields</span> <span class="ss">:paypal_metadata</span>
+<span class="k">end</span>
+</code></pre></div>
+
+
+<p>Ensuite, on peut l’utiliser ainsi :</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="k">class</span> <span class="nc">OrdersController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+
+  <span class="k">def</span> <span class="nf">show</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="no">Order</span><span class="o">.</span><span class="n">get</span> <span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span>
+    <span class="nb">puts</span> <span class="n">order</span><span class="o">.</span><span class="n">paypal_metadata</span><span class="o">[</span><span class="ss">:address_name</span><span class="o">]</span> <span class="c1"># les clés sont des symboles</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">update</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="no">Order</span><span class="o">.</span><span class="n">get</span> <span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span>
+    <span class="n">order</span><span class="o">.</span><span class="n">paypal_metadata</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">:foo</span> <span class="o">=&gt;</span> <span class="ss">:bar</span> <span class="p">}</span>
+    <span class="n">order</span><span class="o">.</span><span class="n">save</span>
+  <span class="k">end</span>
+
+<span class="k">end</span>
+</code></pre></div>
+
+
+<p>Le <a href="http://github.com/remiprev/has_json_fields">code source du plugin</a> est hébergé chez <a href="http://github.com">GitHub</a> et disponible sous <a href="http://github.com/remiprev/has_json_fields/blob/master/LICENSE">license MIT</a>.</p>
+
+        </div>
+        <div class="article-meta">
+          Cette note a été publiée le 18 septembre 2010 par <a href="http://exomel.com">Rémi Prévost</a>. Vous pouvez lui faire part de vos commentaires par courriel à <code>remi</code> suivi du symbole habituel puis de <code>exomel.com</code>. Vous devriez également le suivre sur Twitter via <a href="http://twitter.com/remi">@remi</a>.
+        </div>
+      </article>
+
+    </div>
+  </div>
+</body>
+</html>
+

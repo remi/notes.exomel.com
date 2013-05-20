@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="fr-ca">
+<head>
+  <!-- This is Heroku, yay. -->
+  <meta charset="UTF-8">
+  <title>Rails, GitHub et Egor — Les notes de Rémi Prévost</title>
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+  <link href="http://fonts.googleapis.com/css?family=Lato:light,regular,regularitalic,lightitalic,bold&amp;v1" media="all" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/screen.css" type="text/css" media="screen" />
+  <link rel="alternate" href="/atom.xml" title="Les notes de Rémi Prévost — dernières notes" type="application/atom+xml" />
+  <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  <script type="text/javascript">var _gaq = _gaq || []; _gaq.push(['_setAccount', 'UA-9062654-4']); _gaq.push(['_trackPageview']); (function() { var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true; ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js'; var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s); })();</script>
+</head>
+<body class="template-single">
+  <div id="wrap">
+    <header class="group">
+      <p class="main">
+        <strong><a href="/">Les <em>notes</em> de <em>Rémi Prévost</em></a></strong><br />
+        <span>vim, git, ruby, html5 et autres buzzwords.</span>
+      </p>
+      <hr />
+    </header>
+    <div id="content">
+            <article>
+        <time>Lundi, le  5 mars 2012</time>
+        <h1>Rails, GitHub et Egor</h1>
+        <div class="article-content">
+          <p>Beaucoup de choses ont été écrites sur les <a href="https://github.com/blog/1068-public-key-security-vulnerability-and-mitigation">incidents récents</a> concernant <a href="https://github.com">GitHub</a> et <a href="http://rubyonrails.org">Ruby on Rails</a>. J’avais envie d’ajouter mon point de vue personnel sur les évènements.</p>
+
+<h2>Les évènements</h2>
+
+<p>Un développeur russe, <a href="https://github.com/homakov">Egor Homakov</a>, a découvert il y a quelques jours qu’en utilisant le <em>mass assignment</em> dans Rails sur des modèles qui ne définissent pas de <em>attr_accessible</em>, il était possible de modifier la valeur de n’importe quel attribut d’une instance de ce modèle (si on est autorisé à modifier l’item en question). Ce n’était pas vraiment une découverte puisque que c’est l’essence même du <em>mass assignment</em>.</p>
+
+<p>Croyant que le comportement par défaut de Rails (ne pas forcer de <em>whitelist</em> vide par défaut pour tous les modèles) n’est pas du tout sécure, il <a href="https://github.com/rails/rails/issues/5228">ouvre une <em>issue</em></a> sur le projet Rails sur GitHub.</p>
+
+<p>L’<em>issue</em> est rapidement balayée du revers de la main par l’équipe de Rails, croyant qu’il est la responsabilité du développeur de gérer lui-même les attributs disponibles (ou non disponibles) lors d’un <em>mass assignment</em>.</p>
+
+<p>Pour prouver à quelle point certaines applications Rails peuvent être vulnérables, Egor trouve une faille sur GitHub (une application Rails 2.3.X) reliée au <em>mass assignment</em> et à une vérification des droits d’accès absente et <a href="https://github.com/rails/rails/issues/5239">l’exploite</a>. Son compte GitHub est suspendu (mais restauré quelques heures plus tard) et s’en suit un immense débat avec comme question principale « <em>C’est la faute à qui?</em> ».</p>
+
+<h2>À qui la faute?</h2>
+
+<p>Selon moi, tous ces groupes et personnes ont une responsabilité par rapport à ce qui s’est passé :</p>
+
+<ul>
+<li><strong>Egor Homakov</strong> (pour ne pas avoir rapporté la faille à GitHub)</li>
+<li><strong>L’équipe de Ruby on Rails</strong> (pour ne pas forcer un réglage de sécurité)</li>
+<li><strong>GitHub</strong> (pour la faille de sécurité)</li>
+</ul>
+
+
+<p>Cependant, ils sont responsables à des niveaux très différents.</p>
+
+<p><strong>Egor Homakov</strong> a découvert deux choses : un problème de sécurité dans Rails (un réglage qui devrait être activé par défaut mais qui ne l’est pas) et une faille de sécurité dans l’application GitHub. Cependant, il a seulement choisi de rapporter le premier item. S’il avait également rapporté la faille à GitHub (via leur formulaire de contact), ils auraient pu la corriger rapidement et rien de cela ne se serait produit.</p>
+
+<p><strong>L’équipe de Ruby on Rails</strong> s’est <a href="https://github.com/rails/rails/commit/641a4f62405cc2765424320932902ed8076b5d38">rapidement ajustée</a> en changeant la valeur par défaut de <code>config.active_record.whitelist_attributes</code> pour que le développeur n’ait pas le choix de définir les attributs <em>safe</em> à utiliser lors d’un <em>mass-assignment</em>. Cela aurait probablement dû être fait il y a longtemps.</p>
+
+<p><strong>GitHub</strong> doit aussi assumer sa part de responsabilité pour avoir mis en production du code dont la sécurité ne correspond pas au niveau auquel on s’attend d’un logiciel pour entreprises.</p>
+
+<h2>La morale</h2>
+
+<p>Ne vous fiez <strong>jamais</strong> à ce qui est passé en paramètres HTTP pour bâtir aveuglément vos structures de données. Soyez paranoïaque en vous disant qu’il est extrêmement facile d’ajouter des paramètres supplémentaires à une requête HTTP.</p>
+
+<p>Voici la technique que j’utilise dans mes contrôleurs :</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="k">def</span> <span class="nf">create</span>
+  <span class="vi">@book</span> <span class="o">=</span> <span class="n">current_user</span><span class="o">.</span><span class="n">books</span><span class="o">.</span><span class="n">create</span><span class="p">({</span>
+    <span class="ss">:title</span> <span class="o">=&gt;</span> <span class="n">params</span><span class="o">[</span><span class="ss">:book</span><span class="o">][</span><span class="ss">:title</span><span class="o">]</span><span class="p">,</span>
+    <span class="ss">:lang</span> <span class="o">=&gt;</span> <span class="n">params</span><span class="o">[</span><span class="ss">:book</span><span class="o">][</span><span class="ss">:lang</span><span class="o">]</span>
+  <span class="p">})</span>
+<span class="k">end</span>
+</code></pre></div>
+
+
+<p>Il y a beaucoup d’autres techniques qui permettent de faire la même chose (en évitant de se répéter…) mais avec ça, on s’assure que chaque action traite uniquement les paramètres auxquels on s’attend de recevoir.</p>
+
+        </div>
+        <div class="article-meta">
+          Cette note a été publiée le  5 mars 2012 par <a href="http://exomel.com">Rémi Prévost</a>. Vous pouvez lui faire part de vos commentaires par courriel à <code>remi</code> suivi du symbole habituel puis de <code>exomel.com</code>. Vous devriez également le suivre sur Twitter via <a href="http://twitter.com/remi">@remi</a>.
+        </div>
+      </article>
+
+    </div>
+  </div>
+</body>
+</html>
+

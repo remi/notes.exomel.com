@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="fr-ca">
+<head>
+  <!-- This is Heroku, yay. -->
+  <meta charset="UTF-8">
+  <title>Timestamps relatifs et absolus — Les notes de Rémi Prévost</title>
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+  <link href="http://fonts.googleapis.com/css?family=Lato:light,regular,regularitalic,lightitalic,bold&amp;v1" media="all" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/screen.css" type="text/css" media="screen" />
+  <link rel="alternate" href="/atom.xml" title="Les notes de Rémi Prévost — dernières notes" type="application/atom+xml" />
+  <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  <script type="text/javascript">var _gaq = _gaq || []; _gaq.push(['_setAccount', 'UA-9062654-4']); _gaq.push(['_trackPageview']); (function() { var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true; ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js'; var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s); })();</script>
+</head>
+<body class="template-single">
+  <div id="wrap">
+    <header class="group">
+      <p class="main">
+        <strong><a href="/">Les <em>notes</em> de <em>Rémi Prévost</em></a></strong><br />
+        <span>vim, git, ruby, html5 et autres buzzwords.</span>
+      </p>
+      <hr />
+    </header>
+    <div id="content">
+            <article>
+        <time>Jeudi, le  8 mars 2012</time>
+        <h1>Timestamps relatifs et absolus</h1>
+        <div class="article-content">
+          <p>Le moyen le plus utilisé pour indiquer une date et une heure dans un contexte d’application Web est probablement le <em>timestamp relatif</em>.</p>
+
+<p><img src="/img/billets/github-feed.png" alt="Exemple de timestamps relatifs sur GitHub" /></p>
+
+<p>Le problème avec ces <em>timestamps</em> est que la notion de temps relatif facile à calculer ne couvre pas une grande période pour beaucoup de gens (pour moi en tout cas). <strong>Deux heures</strong>, c’est rapide et facile à calculer. <strong>15 heures</strong>… pas vraiment. <strong>Il y a une journée</strong>… ça pourrait être hier à 8h05, 11h35 ou 17h42.</p>
+
+<p>Heureusement, beaucoup d’applications (comme <a href="https://github.com">GitHub</a>, montré dans la capture d’écran) fournissent le <em>timestamp absolu</em> à ceux qui veulent connaitre la date exacte à laquelle un évènement s’est produit en utilisant du code similaire à ceci :</p>
+
+<div class="highlight"><pre><code class="html"><span class="nt">&lt;time</span> <span class="na">datetime=</span><span class="s">&quot;2012-03-08T10:39:24Z&quot;</span> <span class="na">title=</span><span class="s">&quot;2012-03-08 10:39:24&quot;</span><span class="nt">&gt;</span>5 hours ago<span class="nt">&lt;/time&gt;</span>
+</code></pre></div>
+
+
+<p>En utilisant l’élément <code>TIME</code> d’HTML5, on fournit à l’utilisateur une manière alternative de consulter la date (via l’attribut <code>title</code>) et on ajoute des méta-données permettant aux robots de <em>parser</em> la date facilement (via l’attribut <code>datetime</code>).</p>
+
+<p>Ça prend 30 secondes à implanter et ça vous assurera de faire plaisir aux <em>power users</em> qui ne se contentent pas des estimations relatives.</p>
+
+        </div>
+        <div class="article-meta">
+          Cette note a été publiée le  8 mars 2012 par <a href="http://exomel.com">Rémi Prévost</a>. Vous pouvez lui faire part de vos commentaires par courriel à <code>remi</code> suivi du symbole habituel puis de <code>exomel.com</code>. Vous devriez également le suivre sur Twitter via <a href="http://twitter.com/remi">@remi</a>.
+        </div>
+      </article>
+
+    </div>
+  </div>
+</body>
+</html>
+

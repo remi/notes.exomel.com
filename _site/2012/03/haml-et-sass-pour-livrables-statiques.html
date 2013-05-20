@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="fr-ca">
+<head>
+  <!-- This is Heroku, yay. -->
+  <meta charset="UTF-8">
+  <title>Haml et Sass pour livrables statiques — Les notes de Rémi Prévost</title>
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+  <link href="http://fonts.googleapis.com/css?family=Lato:light,regular,regularitalic,lightitalic,bold&amp;v1" media="all" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/screen.css" type="text/css" media="screen" />
+  <link rel="alternate" href="/atom.xml" title="Les notes de Rémi Prévost — dernières notes" type="application/atom+xml" />
+  <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  <script type="text/javascript">var _gaq = _gaq || []; _gaq.push(['_setAccount', 'UA-9062654-4']); _gaq.push(['_trackPageview']); (function() { var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true; ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js'; var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s); })();</script>
+</head>
+<body class="template-single">
+  <div id="wrap">
+    <header class="group">
+      <p class="main">
+        <strong><a href="/">Les <em>notes</em> de <em>Rémi Prévost</em></a></strong><br />
+        <span>vim, git, ruby, html5 et autres buzzwords.</span>
+      </p>
+      <hr />
+    </header>
+    <div id="content">
+            <article>
+        <time>Lundi, le 12 mars 2012</time>
+        <h1>Haml et Sass pour livrables statiques</h1>
+        <div class="article-content">
+          <p>Dans le cadre d’un mandat sur lequel je travaille, je dois livrer des gabarits HTML accompagnés d’une feuille de styles. Et comme je travaille avec <a href="http://haml-lang.com">Haml</a> depuis près de deux ans, revenir au HTML <em>plain</em> me semblait être un pas en arrière.</p>
+
+<p>Je veux continuer à être productif avec Haml et <a href="http://sass-lang.com">Sass</a>, mais ne pas avoir à créer des gabarits dans une application <a href="http://sinatrarb.com">Sinatra</a>, <a href="http://rubyonrails.org">Rails</a> ou <a href="http://padrinorb.com">Padrino</a>. Un simple <code>haml</code> suffit :</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>haml --double-quote-attributes --format<span class="o">=</span>html5 input.haml output.html
+</code></pre></div>
+
+
+<p>Même chose pour un fichier Sass :</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>scss --style<span class="o">=</span>expanded input.scss css/output.css
+</code></pre></div>
+
+
+<p>C’est bien beau, mais avoir ces commandes ne font que générer <em>une seule fois</em> les livrables. Pas très pratique lorsqu’on est en mode « développement ». Il est possible d’utiliser l’option <code>--watch</code> avec Sass, mais pas avec Haml.</p>
+
+<p>J’utilise donc une gem, <a href="https://github.com/mynyml/watchr"><code>watchr</code></a>, qui permet de définir des règles reliées au système de fichiers. Lorsqu’un fichier est modifié et qu’il correspond à une règle, un bloc de code Ruby est exécuté.</p>
+
+<p>Dans notre cas, nous voulons générer les fichiers HTML et CSS lorsque leur équivalent Haml et Sass a été modifié. Et pour ne pas polluer notre dossier de livrable (le dossier racine), on place les fichiers à surveiller dans un dossier <code>src</code> (qu’on peut même inclure avec notre livrable) :</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="c1"># Contenu de `static.watchr`</span>
+<span class="n">watch</span> <span class="sr">/src\/haml\/(?&lt;basename&gt;.+).haml/</span>  <span class="k">do</span> <span class="o">|</span><span class="n">match</span><span class="o">|</span>
+  <span class="nb">puts</span> <span class="s2">&quot;Regenerating Haml: </span><span class="si">#{</span><span class="n">match</span><span class="si">}</span><span class="s2">&quot;</span>
+  <span class="nb">system</span> <span class="s2">&quot;haml --double-quote-attributes --format=html5 </span><span class="si">#{</span><span class="n">match</span><span class="si">}</span><span class="s2"> </span><span class="si">#{</span><span class="n">match</span><span class="o">[</span><span class="ss">:basename</span><span class="o">]</span><span class="si">}</span><span class="s2">.html&quot;</span>
+<span class="k">end</span>
+
+<span class="n">watch</span> <span class="sr">/src\/sass\/(?&lt;basename&gt;.+).scss/</span> <span class="k">do</span> <span class="o">|</span><span class="n">match</span><span class="o">|</span>
+  <span class="nb">puts</span> <span class="s2">&quot;Regenerating Sass: </span><span class="si">#{</span><span class="n">match</span><span class="si">}</span><span class="s2">&quot;</span>
+  <span class="nb">system</span> <span class="s2">&quot;scss --style=expanded </span><span class="si">#{</span><span class="n">match</span><span class="si">}</span><span class="s2"> css/</span><span class="si">#{</span><span class="n">match</span><span class="o">[</span><span class="ss">:basename</span><span class="o">]</span><span class="si">}</span><span class="s2">.css&quot;</span>
+<span class="k">end</span>
+</code></pre></div>
+
+
+<p>Après avoir installé la gem, on peut utiliser l’exécutable <code>watchr</code> sur notre fichier :</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>watchr static.watchr
+…
+Regenerating Haml: src/index.haml
+Regenerating Sass: src/css/screen.scss
+</code></pre></div>
+
+
+<p>On a maintenant un dossier racine qui contient des fichiers HTML et CSS ainsi qu’un dossier <code>src</code> qui contient nos fichiers « source ».</p>
+
+        </div>
+        <div class="article-meta">
+          Cette note a été publiée le 12 mars 2012 par <a href="http://exomel.com">Rémi Prévost</a>. Vous pouvez lui faire part de vos commentaires par courriel à <code>remi</code> suivi du symbole habituel puis de <code>exomel.com</code>. Vous devriez également le suivre sur Twitter via <a href="http://twitter.com/remi">@remi</a>.
+        </div>
+      </article>
+
+    </div>
+  </div>
+</body>
+</html>
+

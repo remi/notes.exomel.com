@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="fr-ca">
+<head>
+  <!-- This is Heroku, yay. -->
+  <meta charset="UTF-8">
+  <title>Her, an ORM for REST APIs — Les notes de Rémi Prévost</title>
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+  <link href="http://fonts.googleapis.com/css?family=Lato:light,regular,regularitalic,lightitalic,bold&amp;v1" media="all" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/screen.css" type="text/css" media="screen" />
+  <link rel="alternate" href="/atom.xml" title="Les notes de Rémi Prévost — dernières notes" type="application/atom+xml" />
+  <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  <script type="text/javascript">var _gaq = _gaq || []; _gaq.push(['_setAccount', 'UA-9062654-4']); _gaq.push(['_trackPageview']); (function() { var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true; ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js'; var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s); })();</script>
+</head>
+<body class="template-single">
+  <div id="wrap">
+    <header class="group">
+      <p class="main">
+        <strong><a href="/">Les <em>notes</em> de <em>Rémi Prévost</em></a></strong><br />
+        <span>vim, git, ruby, html5 et autres buzzwords.</span>
+      </p>
+      <hr />
+    </header>
+    <div id="content">
+            <article>
+        <time>Lundi, le 16 avril 2012</time>
+        <h1>Her, an ORM for REST APIs</h1>
+        <div class="article-content">
+          <div class="note"><em>Cette note est écrite en anglais, c’est voulu. Hello, english-speaking friends!</em></div>
+
+
+<p>Over the last few years, I’ve worked with Web applications that use a REST API as backend. I’ve also worked on regular Web applications that interact with a database (usually MySQL or MongoDB) backend. I quickly realized that one of things I missed the most while working with the first kind is the ORM. So I decided to build one.</p>
+
+<p>I looked through existing solutions (mostly just <a href="http://api.rubyonrails.org/classes/ActiveResource/Base.html">ActiveResource</a>, which turns out is not actively maintained anymore…) and found out it wasn’t as flexible as I wanted it to be. Lots of hard-coded stuff, no way to cleanly hook my own code in low-level methods, etc.</p>
+
+<p><a href="https://github.com/remiprev/her"><strong>Her</strong></a> is an ORM that was specifically designed to work with REST APIs. Well, basically it does two things: 1) mapping HTTP responses to Ruby objects (through JSON) and 2) adding methods to Ruby objects that trigger HTTP requests (with <a href="https://github.com/technoweenie/faraday">Faraday</a>). It handles the basic ORM stuff and much more. First, initialization is easy:</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="ss">Her</span><span class="p">:</span><span class="ss">:API</span><span class="o">.</span><span class="n">setup</span> <span class="ss">:base_uri</span> <span class="o">=&gt;</span> <span class="s2">&quot;https://api.example.com&quot;</span>
+</code></pre></div>
+
+
+<p>The <a href="https://github.com/remiprev/her/blob/master/README.md">README</a> file covers all supported features, but here a few ones:</p>
+
+<h2>CRUD (create, retrieve, update, delete)</h2>
+
+<p>Like every ORM, Her supports basic find, create, save and destroy methods. Each of these methods triggers an HTTP request and handles the response correctly.</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="k">class</span> <span class="nc">User</span>
+  <span class="kp">include</span> <span class="ss">Her</span><span class="p">:</span><span class="ss">:Model</span>
+<span class="k">end</span>
+
+<span class="c1"># Will call &quot;GET /users/1&quot;</span>
+<span class="vi">@user</span> <span class="o">=</span> <span class="no">User</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># =&gt; #&lt;User(users/1) id=1 name=&quot;Tobias Fünke&quot;&gt;</span>
+
+<span class="c1"># Will call &quot;POST /users&amp;name=Maeby+Fünke&quot;</span>
+<span class="vi">@new_user</span> <span class="o">=</span> <span class="no">User</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:name</span> <span class="o">=&gt;</span> <span class="s2">&quot;Maeby Fünke&quot;</span><span class="p">)</span> <span class="c1"># =&gt; #&lt;User(users/2) id=2 name=&quot;Maeby Fünke&quot;&gt;</span>
+
+<span class="c1"># Will call &quot;PUT /users/2&amp;name=Maeby+Fünke&amp;gender=F&quot;</span>
+<span class="vi">@new_user</span><span class="o">.</span><span class="n">gender</span> <span class="o">=</span> <span class="s2">&quot;F&quot;</span>
+<span class="vi">@new_user</span><span class="o">.</span><span class="n">save</span>
+
+<span class="c1"># Will call &quot;DELETE /users/1&quot;</span>
+<span class="no">User</span><span class="o">.</span><span class="n">delete_existing</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># @user.find(1).delete would have worked too, but would have triggered 2 requests</span>
+</code></pre></div>
+
+
+<h2>Relationships and associations</h2>
+
+<p>Her also handles basic relationships through the <code>has_many</code>, <code>belongs_to</code> and <code>has_one</code> methods. It supports embedded relationship data in the resource response but will make an extra HTTP request to fetch it if it’s not included (providing that there’s an API endpoint for it).</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="k">class</span> <span class="nc">User</span>
+  <span class="kp">include</span> <span class="ss">Her</span><span class="p">:</span><span class="ss">:Model</span>
+  <span class="n">has_many</span> <span class="ss">:comments</span>
+<span class="k">end</span>
+
+<span class="k">class</span> <span class="nc">Comment</span>
+  <span class="kp">include</span> <span class="ss">Her</span><span class="p">:</span><span class="ss">:Model</span>
+<span class="k">end</span>
+
+<span class="c1"># With embedded data (no extra HTTP request)</span>
+<span class="vi">@user</span> <span class="o">=</span> <span class="no">User</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># Let’s say GET /users/1 returns { :id =&gt; 1, :name =&gt; &quot;Rémi Prévost&quot;, :comments =&gt; [{ :id =&gt; 2, :body =&gt; &quot;Hello.&quot; }]</span>
+<span class="vi">@user</span><span class="o">.</span><span class="n">comments</span> <span class="c1"># =&gt; [#&lt;Comment(comments/2) id=2 body=&quot;Hello&quot;&gt;]</span>
+
+<span class="c1"># Without embedded data</span>
+<span class="vi">@user</span> <span class="o">=</span> <span class="no">User</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># Let’s say GET /users/1 returns { :id =&gt; 1, :name =&gt; &quot;Rémi Prévost&quot; }</span>
+<span class="vi">@user</span><span class="o">.</span><span class="n">comments</span> <span class="c1"># =&gt; [#&lt;Comment(comments/2) id=2 body=&quot;Hello&quot;&gt;] fetched from &quot;GET /users/1/comments&quot;</span>
+</code></pre></div>
+
+
+<h2>Middleware</h2>
+
+<p>One of nicest about using <a href="https://github.com/technoweenie/faraday">Faraday</a> as the HTTP layer is that we can leverage its middleware and add custom behavior to the ORM. For example, Her currently doesn’t support authentication — but it’s very easy to add your own:</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="k">class</span> <span class="nc">MyAuthentication</span> <span class="o">&lt;</span> <span class="ss">Faraday</span><span class="p">:</span><span class="ss">:Middleware</span>
+  <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+    <span class="n">env</span><span class="o">[</span><span class="ss">:request_headers</span><span class="o">][</span><span class="s2">&quot;X-API-Token&quot;</span><span class="o">]</span> <span class="o">=</span> <span class="s2">&quot;foobar&quot;</span>
+    <span class="vi">@app</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="ss">Her</span><span class="p">:</span><span class="ss">:API</span><span class="o">.</span><span class="n">setup</span> <span class="ss">:base_uri</span> <span class="o">=&gt;</span> <span class="s2">&quot;https://api.example.com&quot;</span><span class="p">,</span> <span class="ss">:add_middleware</span> <span class="o">=&gt;</span> <span class="no">MyAuthentication</span>
+</code></pre></div>
+
+
+<p>Now each request sent by Her will have a custom <code>X-API-Token</code> HTTP header.</p>
+
+<h2>What’s next?</h2>
+
+<p>Well first, it needs more documentation. The only documentation we currently have is <a href="http://rubydoc.info/gems/her/0.1.7/frames">YARD-generated</a>, which is absolutely fine for me — but it needs more content.</p>
+
+<p>In the meantime, feel free to report bugs, improve the code and suggest features in <a href="https://github.com/remiprev/her/issues">the issues</a>. I’m quite proud of the <code>spec</code> directory for this project, so contributing without breaking anything should be relatively easy.</p>
+
+        </div>
+        <div class="article-meta">
+          Cette note a été publiée le 16 avril 2012 par <a href="http://exomel.com">Rémi Prévost</a>. Vous pouvez lui faire part de vos commentaires par courriel à <code>remi</code> suivi du symbole habituel puis de <code>exomel.com</code>. Vous devriez également le suivre sur Twitter via <a href="http://twitter.com/remi">@remi</a>.
+        </div>
+      </article>
+
+    </div>
+  </div>
+</body>
+</html>
+

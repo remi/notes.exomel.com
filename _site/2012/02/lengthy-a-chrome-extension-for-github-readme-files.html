@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="fr-ca">
+<head>
+  <!-- This is Heroku, yay. -->
+  <meta charset="UTF-8">
+  <title>Lengthy: a Chrome extension for GitHub README files — Les notes de Rémi Prévost</title>
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+  <link href="http://fonts.googleapis.com/css?family=Lato:light,regular,regularitalic,lightitalic,bold&amp;v1" media="all" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/screen.css" type="text/css" media="screen" />
+  <link rel="alternate" href="/atom.xml" title="Les notes de Rémi Prévost — dernières notes" type="application/atom+xml" />
+  <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  <script type="text/javascript">var _gaq = _gaq || []; _gaq.push(['_setAccount', 'UA-9062654-4']); _gaq.push(['_trackPageview']); (function() { var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true; ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js'; var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s); })();</script>
+</head>
+<body class="template-single">
+  <div id="wrap">
+    <header class="group">
+      <p class="main">
+        <strong><a href="/">Les <em>notes</em> de <em>Rémi Prévost</em></a></strong><br />
+        <span>vim, git, ruby, html5 et autres buzzwords.</span>
+      </p>
+      <hr />
+    </header>
+    <div id="content">
+            <article>
+        <time>Lundi, le 27 février 2012</time>
+        <h1>Lengthy: a Chrome extension for GitHub <code>README</code> files</h1>
+        <div class="article-content">
+          <div class="note"><em>Cette note est écrite en anglais, c’est voulu.</em></div>
+
+
+<p>Over the weekend, I found myself reading <a href="https://github.com/rspec/rspec-rails">this page</a>. A lot. And one thing that really started to annoy me is that <code>README</code> files like the one on the page are really hard to browse if there are over two or three sections in them.</p>
+
+<p>So, I wrote <a href="https://github.com/remiprev/lengthy">Lengthy</a>, a <a href="https://www.google.com/chrome">Google Chrome</a>/<a href="http://www.chromium.org/">Chromium</a> extension that adds a table of contents to <code>README</code> files on <a href="https://github.com/">GitHub</a>. All types of <code>README</code> files are supported (Markdown, Textile, RDoc, etc) because the extension interacts with the HTML content on the page.</p>
+
+<p>Before:</p>
+
+<p><img src="http://i.imgur.com/kJfPB.png" alt="image" /></p>
+
+<p>After (<em>when the arrow icon is clicked</em>):</p>
+
+<p><img src="http://i.imgur.com/SednW.png" alt="image" /></p>
+
+<p>Currently, the best way to install the extension is by cloning the Git repository and opening the <code>.crx</code> file with your browser:</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>git clone git://github.com/remiprev/lengthy.git
+<span class="nv">$ </span>open lengthy/ext/lengthy.crx
+</code></pre></div>
+
+
+<p>Hopefully it will be useful to others as much as it is to me.</p>
+
+        </div>
+        <div class="article-meta">
+          Cette note a été publiée le 27 février 2012 par <a href="http://exomel.com">Rémi Prévost</a>. Vous pouvez lui faire part de vos commentaires par courriel à <code>remi</code> suivi du symbole habituel puis de <code>exomel.com</code>. Vous devriez également le suivre sur Twitter via <a href="http://twitter.com/remi">@remi</a>.
+        </div>
+      </article>
+
+    </div>
+  </div>
+</body>
+</html>
+

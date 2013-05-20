@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="fr-ca">
+<head>
+  <!-- This is Heroku, yay. -->
+  <meta charset="UTF-8">
+  <title>Utiliser cache_fu avec une application Rails — Les notes de Rémi Prévost</title>
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+  <link href="http://fonts.googleapis.com/css?family=Lato:light,regular,regularitalic,lightitalic,bold&amp;v1" media="all" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/screen.css" type="text/css" media="screen" />
+  <link rel="alternate" href="/atom.xml" title="Les notes de Rémi Prévost — dernières notes" type="application/atom+xml" />
+  <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  <script type="text/javascript">var _gaq = _gaq || []; _gaq.push(['_setAccount', 'UA-9062654-4']); _gaq.push(['_trackPageview']); (function() { var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true; ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js'; var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s); })();</script>
+</head>
+<body class="template-single">
+  <div id="wrap">
+    <header class="group">
+      <p class="main">
+        <strong><a href="/">Les <em>notes</em> de <em>Rémi Prévost</em></a></strong><br />
+        <span>vim, git, ruby, html5 et autres buzzwords.</span>
+      </p>
+      <hr />
+    </header>
+    <div id="content">
+            <article>
+        <time>Jeudi, le 16 septembre 2010</time>
+        <h1>Utiliser <em>cache_fu</em> avec une application Rails</h1>
+        <div class="article-content">
+          <p>Le plugin <a href="http://github.com/defunkt/cache_fu"><code>cache_fu</code></a> a été développé par <a href="http://chriswanstrath.com/">Chris Wanstrath</a> (connu pour être un des co-fondateurs de <a href="http://github.com">GitHub</a>) à partir du code du plugin déjà-existant <code>acts_as_cached</code>. Il n’a qu’un seul but : permettre à une application <a href="http://rubyonrails.org">Ruby on Rails</a> de stocker des enregistrements <code>ActiveRecord</code> sur un serveur <code>memcached</code> pour éviter de faire trop de requête à la base de données.</p>
+
+<p>Il existe très peu de documentation pour le plugin, c’est pourquoi j’ai voulu lui consacrer un billet avec des exemples d’utilisation, même s’il n’est plus développé par son auteur.</p>
+
+<h2>Installation</h2>
+
+<p>Pour installer <code>memcached</code>, je vous conseille <a href="http://mxcl.github.com/homebrew">homebrew</a>.</p>
+
+<div class="highlight"><pre><code class="bash"><span class="c"># Installe la dernière version de memcached via homebrew</span>
+<span class="nv">$ </span>brew install memcached
+
+<span class="c"># fais tourner memcached sur le port 11211 en mode verbose</span>
+<span class="nv">$ </span>memcached -p 11211 -vv
+</code></pre></div>
+
+
+<p>Ensuite, pour install le plugin. À partir de votre dossier d’application Rails :</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>./script/plugin install http://github.com/defunkt/cache_fu.git
+</code></pre></div>
+
+
+<p>La configuration de <code>cache_fu</code> via le fichier <code>config/memcached.yml</code> est assez simple à comprendre.</p>
+
+<h2>La base</h2>
+
+<p>Le plugin est très simple à utiliser. On n’a qu’à spécifier dans notre modèle qu’on veut que ce dernier et ses instances répondent aux méthodes de cache :</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="k">class</span> <span class="nc">Kit</span> <span class="o">&lt;</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Base</span>
+  <span class="n">acts_as_cached</span>
+<span class="k">end</span>
+</code></pre></div>
+
+
+<p>Cela ajoute la méthode <code>get_cache</code> à la classe. On peut ensuite récupérer les données dans la base de données comme on le ferait avec un <code>find</code>.</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="k">class</span> <span class="nc">KitsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">show</span>
+    <span class="c1"># @kit = Kit.find params[:id]</span>
+    <span class="vi">@kit</span> <span class="o">=</span> <span class="no">Kit</span><span class="o">.</span><span class="n">get_cache</span> <span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+
+
+<p>Un des aspects très important à garder en tête lorsqu’on utilise <code>cache_fu</code> (ou tout autre méthode de cache) est qu’il est la tâche du client d’invalider les données du serveur <code>memcached</code> lorsque celles-ci sont rendues obsolètes par l’application. Pour ce faire, nous pouvons utiliser les “callbacks” de Rails, <code>after_save</code> et <code>after_destroy</code> :</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="k">class</span> <span class="nc">Kit</span> <span class="o">&lt;</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Base</span>
+  <span class="n">acts_as_cached</span>
+
+  <span class="k">def</span> <span class="nf">after_save</span>
+    <span class="nb">self</span><span class="o">.</span><span class="n">expire_cache</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">after_destroy</span>
+    <span class="nb">self</span><span class="o">.</span><span class="n">expire_cache</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+
+
+<p>Cela nous assure que lorsqu’un enregistrement est mis à jour, nous irons le récupérer à partir de la base de données la prochaine fois où nous en aurons besoin.</p>
+
+<h2>La cache locale</h2>
+
+<p>Si la structure de notre application nous demande d’aller chercher un même enregistrement plusieurs fois lors d’une seule même requête HTTP, la performance de l’application sera affectée puisqu’à chaque fois, une requête vers <code>memcached</code> sera effectuée. Pour remédier à ce problème, <code>cache_fu</code> fournit une cache <em>locale</em>.</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="k">class</span> <span class="nc">ApplicationController</span> <span class="o">&lt;</span> <span class="ss">ActionController</span><span class="p">:</span><span class="ss">:Base</span>
+  <span class="n">before_filter</span> <span class="ss">:local_cache_for_request</span>
+<span class="k">end</span>
+</code></pre></div>
+
+
+<p>Lorsqu’un enregistrement est récupéré via <code>memcached</code>, il est stocké dans la cache locale pour utilisation future dans la même requête. <code>Cache_fu</code> se charge également de tenir la cache locale à jour lorsqu’on appelle la méthode <code>expire_cache</code>.</p>
+
+<h2>Méthodes personnalisées</h2>
+
+<p>Il n’est pas rare de vouloir garder en cache le résultat d’une méthode de classe. Par exemple ici, on veut garder en cache la liste des kits qui se trouveront sur la page d’accueil de notre application :</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="k">def</span> <span class="nf">index</span>
+  <span class="vi">@kits</span> <span class="o">=</span> <span class="no">Kit</span><span class="o">.</span><span class="n">caches</span> <span class="ss">:homepage_kits</span>
+<span class="k">end</span>
+</code></pre></div>
+
+
+<p>Qu’est-ce qui se passe ici? La méthode <code>caches</code> appelle la fonction <code>homepage_kits</code> du modèle <code>Kit</code> et garde le résultat en cache.</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="k">class</span> <span class="nc">Kit</span> <span class="o">&lt;</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Base</span>
+  <span class="n">acts_as_cached</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">homepage_kits</span>
+    <span class="no">Kit</span><span class="o">.</span><span class="n">find</span> <span class="ss">:all</span><span class="p">,</span> <span class="ss">:conditions</span> <span class="o">=&gt;</span> <span class="p">{</span> <span class="ss">:homepage_worthy</span> <span class="o">=&gt;</span> <span class="kp">true</span> <span class="p">},</span> <span class="ss">:order_by</span> <span class="o">=&gt;</span> <span class="s2">&quot;name ASC&quot;</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+
+
+<p>Cette technique est très utile pour conserver en cache des requêtes lourdes qui demandent beaucoup temps de traitement à la base de données.</p>
+
+<h2>Plusieurs enregistrements à la fois</h2>
+
+<p>Pour éviter de faire plusieurs requêtes consécutives au serveur <code>memcached</code>, on peut utiliser un <code>Array</code> comme premier paramètre de la méthode <code>get_cache</code>.</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="k">class</span> <span class="nc">KitsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">index</span>
+    <span class="vi">@kits</span> <span class="o">=</span> <span class="no">Kit</span><span class="o">.</span><span class="n">get_cache</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+
+
+<h2>Associations</h2>
+
+<p><code>Cache_fu</code> permet aussi de stocker les données associées à un modèle via les hooks <code>has_many</code>, <code>belongs_to</code> et autres.</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="k">class</span> <span class="nc">Kit</span> <span class="o">&lt;</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Base</span>
+  <span class="n">acts_as_cached</span> <span class="ss">:include</span> <span class="o">=&gt;</span> <span class="ss">:comments</span>
+  <span class="n">has_many</span> <span class="ss">:comments</span>
+<span class="k">end</span>
+
+<span class="k">class</span> <span class="nc">KitsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">show</span>
+    <span class="vi">@kit</span> <span class="o">=</span> <span class="no">Kit</span><span class="o">.</span><span class="n">get_cache</span> <span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span>
+    <span class="c1"># @kit.comments est stocké en cache</span>
+    <span class="c1"># @kit.comments =&gt; [&lt;#Comment&gt;, …]</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+
+
+<p>Il faut faire attention avec les associations gardées en cache, car plus on stocke de données via <code>memcached</code>, plus on est responsable du maintien de la « fraicheur » de la cache lors de la modification ou de la suppression de ces données.</p>
+
+<p>Par exemple, si un objet est associé à 5 objets et qu’il est gardés en cache via association, lorsqu’on le modifie, on devra faire expirer les 5 objets qui contiennent l’objet maintenant obsolète dans leur cache.</p>
+
+        </div>
+        <div class="article-meta">
+          Cette note a été publiée le 16 septembre 2010 par <a href="http://exomel.com">Rémi Prévost</a>. Vous pouvez lui faire part de vos commentaires par courriel à <code>remi</code> suivi du symbole habituel puis de <code>exomel.com</code>. Vous devriez également le suivre sur Twitter via <a href="http://twitter.com/remi">@remi</a>.
+        </div>
+      </article>
+
+    </div>
+  </div>
+</body>
+</html>
+

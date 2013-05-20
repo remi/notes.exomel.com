@@ -1,0 +1,719 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:exomel="http://notes.exomel.com">
+	<title>Les notes de Rémi Prévost — dernières notes</title>
+	<link href="http://notes.exomel.com/atom.xml" rel="self"/>
+	<link href="http://notes.exomel.com"/>
+	<updated>2013-05-20T11:46:54-04:00</updated>
+	<id>http://notes.exomel.com</id>
+	<author>
+		<name>Rémi Prévost</name>
+	</author>
+
+	
+	<entry>
+		<title>Her, an ORM for REST APIs</title>
+		<link href="http://notes.exomel.com/2012/04/her-an-orm-for-rest-apis.html" />
+		<updated>2012-04-16T00:00:00-04:00</updated>
+		<id>http://notes.exomel.com/2012/04/her-an-orm-for-rest-apis</id>
+		<content type="xhtml">
+			<div xmlns='http://www.w3.org/1999/xhtml'>
+			<div class="note"><em>Cette note est écrite en anglais, c’est voulu. Hello, english-speaking friends!</em></div>
+
+
+<p>Over the last few years, I’ve worked with Web applications that use a REST API as backend. I’ve also worked on regular Web applications that interact with a database (usually MySQL or MongoDB) backend. I quickly realized that one of things I missed the most while working with the first kind is the ORM. So I decided to build one.</p>
+
+<p>I looked through existing solutions (mostly just <a href="http://api.rubyonrails.org/classes/ActiveResource/Base.html">ActiveResource</a>, which turns out is not actively maintained anymore…) and found out it wasn’t as flexible as I wanted it to be. Lots of hard-coded stuff, no way to cleanly hook my own code in low-level methods, etc.</p>
+
+<p><a href="https://github.com/remiprev/her"><strong>Her</strong></a> is an ORM that was specifically designed to work with REST APIs. Well, basically it does two things: 1) mapping HTTP responses to Ruby objects (through JSON) and 2) adding methods to Ruby objects that trigger HTTP requests (with <a href="https://github.com/technoweenie/faraday">Faraday</a>). It handles the basic ORM stuff and much more. First, initialization is easy:</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="ss">Her</span><span class="p">:</span><span class="ss">:API</span><span class="o">.</span><span class="n">setup</span> <span class="ss">:base_uri</span> <span class="o">=&gt;</span> <span class="s2">&quot;https://api.example.com&quot;</span>
+</code></pre></div>
+
+
+<p>The <a href="https://github.com/remiprev/her/blob/master/README.md">README</a> file covers all supported features, but here a few ones:</p>
+
+<h2>CRUD (create, retrieve, update, delete)</h2>
+
+<p>Like every ORM, Her supports basic find, create, save and destroy methods. Each of these methods triggers an HTTP request and handles the response correctly.</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="k">class</span> <span class="nc">User</span>
+  <span class="kp">include</span> <span class="ss">Her</span><span class="p">:</span><span class="ss">:Model</span>
+<span class="k">end</span>
+
+<span class="c1"># Will call &quot;GET /users/1&quot;</span>
+<span class="vi">@user</span> <span class="o">=</span> <span class="no">User</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># =&gt; #&lt;User(users/1) id=1 name=&quot;Tobias Fünke&quot;&gt;</span>
+
+<span class="c1"># Will call &quot;POST /users&amp;name=Maeby+Fünke&quot;</span>
+<span class="vi">@new_user</span> <span class="o">=</span> <span class="no">User</span><span class="o">.</span><span class="n">create</span><span class="p">(</span><span class="ss">:name</span> <span class="o">=&gt;</span> <span class="s2">&quot;Maeby Fünke&quot;</span><span class="p">)</span> <span class="c1"># =&gt; #&lt;User(users/2) id=2 name=&quot;Maeby Fünke&quot;&gt;</span>
+
+<span class="c1"># Will call &quot;PUT /users/2&amp;name=Maeby+Fünke&amp;gender=F&quot;</span>
+<span class="vi">@new_user</span><span class="o">.</span><span class="n">gender</span> <span class="o">=</span> <span class="s2">&quot;F&quot;</span>
+<span class="vi">@new_user</span><span class="o">.</span><span class="n">save</span>
+
+<span class="c1"># Will call &quot;DELETE /users/1&quot;</span>
+<span class="no">User</span><span class="o">.</span><span class="n">delete_existing</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># @user.find(1).delete would have worked too, but would have triggered 2 requests</span>
+</code></pre></div>
+
+
+<h2>Relationships and associations</h2>
+
+<p>Her also handles basic relationships through the <code>has_many</code>, <code>belongs_to</code> and <code>has_one</code> methods. It supports embedded relationship data in the resource response but will make an extra HTTP request to fetch it if it’s not included (providing that there’s an API endpoint for it).</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="k">class</span> <span class="nc">User</span>
+  <span class="kp">include</span> <span class="ss">Her</span><span class="p">:</span><span class="ss">:Model</span>
+  <span class="n">has_many</span> <span class="ss">:comments</span>
+<span class="k">end</span>
+
+<span class="k">class</span> <span class="nc">Comment</span>
+  <span class="kp">include</span> <span class="ss">Her</span><span class="p">:</span><span class="ss">:Model</span>
+<span class="k">end</span>
+
+<span class="c1"># With embedded data (no extra HTTP request)</span>
+<span class="vi">@user</span> <span class="o">=</span> <span class="no">User</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># Let’s say GET /users/1 returns { :id =&gt; 1, :name =&gt; &quot;Rémi Prévost&quot;, :comments =&gt; [{ :id =&gt; 2, :body =&gt; &quot;Hello.&quot; }]</span>
+<span class="vi">@user</span><span class="o">.</span><span class="n">comments</span> <span class="c1"># =&gt; [#&lt;Comment(comments/2) id=2 body=&quot;Hello&quot;&gt;]</span>
+
+<span class="c1"># Without embedded data</span>
+<span class="vi">@user</span> <span class="o">=</span> <span class="no">User</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># Let’s say GET /users/1 returns { :id =&gt; 1, :name =&gt; &quot;Rémi Prévost&quot; }</span>
+<span class="vi">@user</span><span class="o">.</span><span class="n">comments</span> <span class="c1"># =&gt; [#&lt;Comment(comments/2) id=2 body=&quot;Hello&quot;&gt;] fetched from &quot;GET /users/1/comments&quot;</span>
+</code></pre></div>
+
+
+<h2>Middleware</h2>
+
+<p>One of nicest about using <a href="https://github.com/technoweenie/faraday">Faraday</a> as the HTTP layer is that we can leverage its middleware and add custom behavior to the ORM. For example, Her currently doesn’t support authentication — but it’s very easy to add your own:</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="k">class</span> <span class="nc">MyAuthentication</span> <span class="o">&lt;</span> <span class="ss">Faraday</span><span class="p">:</span><span class="ss">:Middleware</span>
+  <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+    <span class="n">env</span><span class="o">[</span><span class="ss">:request_headers</span><span class="o">][</span><span class="s2">&quot;X-API-Token&quot;</span><span class="o">]</span> <span class="o">=</span> <span class="s2">&quot;foobar&quot;</span>
+    <span class="vi">@app</span><span class="o">.</span><span class="n">call</span><span class="p">(</span><span class="n">env</span><span class="p">)</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+
+<span class="ss">Her</span><span class="p">:</span><span class="ss">:API</span><span class="o">.</span><span class="n">setup</span> <span class="ss">:base_uri</span> <span class="o">=&gt;</span> <span class="s2">&quot;https://api.example.com&quot;</span><span class="p">,</span> <span class="ss">:add_middleware</span> <span class="o">=&gt;</span> <span class="no">MyAuthentication</span>
+</code></pre></div>
+
+
+<p>Now each request sent by Her will have a custom <code>X-API-Token</code> HTTP header.</p>
+
+<h2>What’s next?</h2>
+
+<p>Well first, it needs more documentation. The only documentation we currently have is <a href="http://rubydoc.info/gems/her/0.1.7/frames">YARD-generated</a>, which is absolutely fine for me — but it needs more content.</p>
+
+<p>In the meantime, feel free to report bugs, improve the code and suggest features in <a href="https://github.com/remiprev/her/issues">the issues</a>. I’m quite proud of the <code>spec</code> directory for this project, so contributing without breaking anything should be relatively easy.</p>
+
+			</div>
+		</content>
+	</entry>
+	
+	<entry>
+		<title>Haml et Sass pour livrables statiques</title>
+		<link href="http://notes.exomel.com/2012/03/haml-et-sass-pour-livrables-statiques.html" />
+		<updated>2012-03-12T00:00:00-04:00</updated>
+		<id>http://notes.exomel.com/2012/03/haml-et-sass-pour-livrables-statiques</id>
+		<content type="xhtml">
+			<div xmlns='http://www.w3.org/1999/xhtml'>
+			<p>Dans le cadre d’un mandat sur lequel je travaille, je dois livrer des gabarits HTML accompagnés d’une feuille de styles. Et comme je travaille avec <a href="http://haml-lang.com">Haml</a> depuis près de deux ans, revenir au HTML <em>plain</em> me semblait être un pas en arrière.</p>
+
+<p>Je veux continuer à être productif avec Haml et <a href="http://sass-lang.com">Sass</a>, mais ne pas avoir à créer des gabarits dans une application <a href="http://sinatrarb.com">Sinatra</a>, <a href="http://rubyonrails.org">Rails</a> ou <a href="http://padrinorb.com">Padrino</a>. Un simple <code>haml</code> suffit :</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>haml --double-quote-attributes --format<span class="o">=</span>html5 input.haml output.html
+</code></pre></div>
+
+
+<p>Même chose pour un fichier Sass :</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>scss --style<span class="o">=</span>expanded input.scss css/output.css
+</code></pre></div>
+
+
+<p>C’est bien beau, mais avoir ces commandes ne font que générer <em>une seule fois</em> les livrables. Pas très pratique lorsqu’on est en mode « développement ». Il est possible d’utiliser l’option <code>--watch</code> avec Sass, mais pas avec Haml.</p>
+
+<p>J’utilise donc une gem, <a href="https://github.com/mynyml/watchr"><code>watchr</code></a>, qui permet de définir des règles reliées au système de fichiers. Lorsqu’un fichier est modifié et qu’il correspond à une règle, un bloc de code Ruby est exécuté.</p>
+
+<p>Dans notre cas, nous voulons générer les fichiers HTML et CSS lorsque leur équivalent Haml et Sass a été modifié. Et pour ne pas polluer notre dossier de livrable (le dossier racine), on place les fichiers à surveiller dans un dossier <code>src</code> (qu’on peut même inclure avec notre livrable) :</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="c1"># Contenu de `static.watchr`</span>
+<span class="n">watch</span> <span class="sr">/src\/haml\/(?&lt;basename&gt;.+).haml/</span>  <span class="k">do</span> <span class="o">|</span><span class="n">match</span><span class="o">|</span>
+  <span class="nb">puts</span> <span class="s2">&quot;Regenerating Haml: </span><span class="si">#{</span><span class="n">match</span><span class="si">}</span><span class="s2">&quot;</span>
+  <span class="nb">system</span> <span class="s2">&quot;haml --double-quote-attributes --format=html5 </span><span class="si">#{</span><span class="n">match</span><span class="si">}</span><span class="s2"> </span><span class="si">#{</span><span class="n">match</span><span class="o">[</span><span class="ss">:basename</span><span class="o">]</span><span class="si">}</span><span class="s2">.html&quot;</span>
+<span class="k">end</span>
+
+<span class="n">watch</span> <span class="sr">/src\/sass\/(?&lt;basename&gt;.+).scss/</span> <span class="k">do</span> <span class="o">|</span><span class="n">match</span><span class="o">|</span>
+  <span class="nb">puts</span> <span class="s2">&quot;Regenerating Sass: </span><span class="si">#{</span><span class="n">match</span><span class="si">}</span><span class="s2">&quot;</span>
+  <span class="nb">system</span> <span class="s2">&quot;scss --style=expanded </span><span class="si">#{</span><span class="n">match</span><span class="si">}</span><span class="s2"> css/</span><span class="si">#{</span><span class="n">match</span><span class="o">[</span><span class="ss">:basename</span><span class="o">]</span><span class="si">}</span><span class="s2">.css&quot;</span>
+<span class="k">end</span>
+</code></pre></div>
+
+
+<p>Après avoir installé la gem, on peut utiliser l’exécutable <code>watchr</code> sur notre fichier :</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>watchr static.watchr
+…
+Regenerating Haml: src/index.haml
+Regenerating Sass: src/css/screen.scss
+</code></pre></div>
+
+
+<p>On a maintenant un dossier racine qui contient des fichiers HTML et CSS ainsi qu’un dossier <code>src</code> qui contient nos fichiers « source ».</p>
+
+			</div>
+		</content>
+	</entry>
+	
+	<entry>
+		<title>Timestamps relatifs et absolus</title>
+		<link href="http://notes.exomel.com/2012/03/timestamps-relatifs-et-absolus.html" />
+		<updated>2012-03-08T00:00:00-05:00</updated>
+		<id>http://notes.exomel.com/2012/03/timestamps-relatifs-et-absolus</id>
+		<content type="xhtml">
+			<div xmlns='http://www.w3.org/1999/xhtml'>
+			<p>Le moyen le plus utilisé pour indiquer une date et une heure dans un contexte d’application Web est probablement le <em>timestamp relatif</em>.</p>
+
+<p><img src="/img/billets/github-feed.png" alt="Exemple de timestamps relatifs sur GitHub" /></p>
+
+<p>Le problème avec ces <em>timestamps</em> est que la notion de temps relatif facile à calculer ne couvre pas une grande période pour beaucoup de gens (pour moi en tout cas). <strong>Deux heures</strong>, c’est rapide et facile à calculer. <strong>15 heures</strong>… pas vraiment. <strong>Il y a une journée</strong>… ça pourrait être hier à 8h05, 11h35 ou 17h42.</p>
+
+<p>Heureusement, beaucoup d’applications (comme <a href="https://github.com">GitHub</a>, montré dans la capture d’écran) fournissent le <em>timestamp absolu</em> à ceux qui veulent connaitre la date exacte à laquelle un évènement s’est produit en utilisant du code similaire à ceci :</p>
+
+<div class="highlight"><pre><code class="html"><span class="nt">&lt;time</span> <span class="na">datetime=</span><span class="s">&quot;2012-03-08T10:39:24Z&quot;</span> <span class="na">title=</span><span class="s">&quot;2012-03-08 10:39:24&quot;</span><span class="nt">&gt;</span>5 hours ago<span class="nt">&lt;/time&gt;</span>
+</code></pre></div>
+
+
+<p>En utilisant l’élément <code>TIME</code> d’HTML5, on fournit à l’utilisateur une manière alternative de consulter la date (via l’attribut <code>title</code>) et on ajoute des méta-données permettant aux robots de <em>parser</em> la date facilement (via l’attribut <code>datetime</code>).</p>
+
+<p>Ça prend 30 secondes à implanter et ça vous assurera de faire plaisir aux <em>power users</em> qui ne se contentent pas des estimations relatives.</p>
+
+			</div>
+		</content>
+	</entry>
+	
+	<entry>
+		<title>Rails, GitHub et Egor</title>
+		<link href="http://notes.exomel.com/2012/03/rails-github-et-egor.html" />
+		<updated>2012-03-05T00:00:00-05:00</updated>
+		<id>http://notes.exomel.com/2012/03/rails-github-et-egor</id>
+		<content type="xhtml">
+			<div xmlns='http://www.w3.org/1999/xhtml'>
+			<p>Beaucoup de choses ont été écrites sur les <a href="https://github.com/blog/1068-public-key-security-vulnerability-and-mitigation">incidents récents</a> concernant <a href="https://github.com">GitHub</a> et <a href="http://rubyonrails.org">Ruby on Rails</a>. J’avais envie d’ajouter mon point de vue personnel sur les évènements.</p>
+
+<h2>Les évènements</h2>
+
+<p>Un développeur russe, <a href="https://github.com/homakov">Egor Homakov</a>, a découvert il y a quelques jours qu’en utilisant le <em>mass assignment</em> dans Rails sur des modèles qui ne définissent pas de <em>attr_accessible</em>, il était possible de modifier la valeur de n’importe quel attribut d’une instance de ce modèle (si on est autorisé à modifier l’item en question). Ce n’était pas vraiment une découverte puisque que c’est l’essence même du <em>mass assignment</em>.</p>
+
+<p>Croyant que le comportement par défaut de Rails (ne pas forcer de <em>whitelist</em> vide par défaut pour tous les modèles) n’est pas du tout sécure, il <a href="https://github.com/rails/rails/issues/5228">ouvre une <em>issue</em></a> sur le projet Rails sur GitHub.</p>
+
+<p>L’<em>issue</em> est rapidement balayée du revers de la main par l’équipe de Rails, croyant qu’il est la responsabilité du développeur de gérer lui-même les attributs disponibles (ou non disponibles) lors d’un <em>mass assignment</em>.</p>
+
+<p>Pour prouver à quelle point certaines applications Rails peuvent être vulnérables, Egor trouve une faille sur GitHub (une application Rails 2.3.X) reliée au <em>mass assignment</em> et à une vérification des droits d’accès absente et <a href="https://github.com/rails/rails/issues/5239">l’exploite</a>. Son compte GitHub est suspendu (mais restauré quelques heures plus tard) et s’en suit un immense débat avec comme question principale « <em>C’est la faute à qui?</em> ».</p>
+
+<h2>À qui la faute?</h2>
+
+<p>Selon moi, tous ces groupes et personnes ont une responsabilité par rapport à ce qui s’est passé :</p>
+
+<ul>
+<li><strong>Egor Homakov</strong> (pour ne pas avoir rapporté la faille à GitHub)</li>
+<li><strong>L’équipe de Ruby on Rails</strong> (pour ne pas forcer un réglage de sécurité)</li>
+<li><strong>GitHub</strong> (pour la faille de sécurité)</li>
+</ul>
+
+
+<p>Cependant, ils sont responsables à des niveaux très différents.</p>
+
+<p><strong>Egor Homakov</strong> a découvert deux choses : un problème de sécurité dans Rails (un réglage qui devrait être activé par défaut mais qui ne l’est pas) et une faille de sécurité dans l’application GitHub. Cependant, il a seulement choisi de rapporter le premier item. S’il avait également rapporté la faille à GitHub (via leur formulaire de contact), ils auraient pu la corriger rapidement et rien de cela ne se serait produit.</p>
+
+<p><strong>L’équipe de Ruby on Rails</strong> s’est <a href="https://github.com/rails/rails/commit/641a4f62405cc2765424320932902ed8076b5d38">rapidement ajustée</a> en changeant la valeur par défaut de <code>config.active_record.whitelist_attributes</code> pour que le développeur n’ait pas le choix de définir les attributs <em>safe</em> à utiliser lors d’un <em>mass-assignment</em>. Cela aurait probablement dû être fait il y a longtemps.</p>
+
+<p><strong>GitHub</strong> doit aussi assumer sa part de responsabilité pour avoir mis en production du code dont la sécurité ne correspond pas au niveau auquel on s’attend d’un logiciel pour entreprises.</p>
+
+<h2>La morale</h2>
+
+<p>Ne vous fiez <strong>jamais</strong> à ce qui est passé en paramètres HTTP pour bâtir aveuglément vos structures de données. Soyez paranoïaque en vous disant qu’il est extrêmement facile d’ajouter des paramètres supplémentaires à une requête HTTP.</p>
+
+<p>Voici la technique que j’utilise dans mes contrôleurs :</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="k">def</span> <span class="nf">create</span>
+  <span class="vi">@book</span> <span class="o">=</span> <span class="n">current_user</span><span class="o">.</span><span class="n">books</span><span class="o">.</span><span class="n">create</span><span class="p">({</span>
+    <span class="ss">:title</span> <span class="o">=&gt;</span> <span class="n">params</span><span class="o">[</span><span class="ss">:book</span><span class="o">][</span><span class="ss">:title</span><span class="o">]</span><span class="p">,</span>
+    <span class="ss">:lang</span> <span class="o">=&gt;</span> <span class="n">params</span><span class="o">[</span><span class="ss">:book</span><span class="o">][</span><span class="ss">:lang</span><span class="o">]</span>
+  <span class="p">})</span>
+<span class="k">end</span>
+</code></pre></div>
+
+
+<p>Il y a beaucoup d’autres techniques qui permettent de faire la même chose (en évitant de se répéter…) mais avec ça, on s’assure que chaque action traite uniquement les paramètres auxquels on s’attend de recevoir.</p>
+
+			</div>
+		</content>
+	</entry>
+	
+	<entry>
+		<title>Lengthy: a Chrome extension for GitHub README files</title>
+		<link href="http://notes.exomel.com/2012/02/lengthy-a-chrome-extension-for-github-readme-files.html" />
+		<updated>2012-02-27T00:00:00-05:00</updated>
+		<id>http://notes.exomel.com/2012/02/lengthy-a-chrome-extension-for-github-readme-files</id>
+		<content type="xhtml">
+			<div xmlns='http://www.w3.org/1999/xhtml'>
+			<div class="note"><em>Cette note est écrite en anglais, c’est voulu.</em></div>
+
+
+<p>Over the weekend, I found myself reading <a href="https://github.com/rspec/rspec-rails">this page</a>. A lot. And one thing that really started to annoy me is that <code>README</code> files like the one on the page are really hard to browse if there are over two or three sections in them.</p>
+
+<p>So, I wrote <a href="https://github.com/remiprev/lengthy">Lengthy</a>, a <a href="https://www.google.com/chrome">Google Chrome</a>/<a href="http://www.chromium.org/">Chromium</a> extension that adds a table of contents to <code>README</code> files on <a href="https://github.com/">GitHub</a>. All types of <code>README</code> files are supported (Markdown, Textile, RDoc, etc) because the extension interacts with the HTML content on the page.</p>
+
+<p>Before:</p>
+
+<p><img src="http://i.imgur.com/kJfPB.png" alt="image" /></p>
+
+<p>After (<em>when the arrow icon is clicked</em>):</p>
+
+<p><img src="http://i.imgur.com/SednW.png" alt="image" /></p>
+
+<p>Currently, the best way to install the extension is by cloning the Git repository and opening the <code>.crx</code> file with your browser:</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>git clone git://github.com/remiprev/lengthy.git
+<span class="nv">$ </span>open lengthy/ext/lengthy.crx
+</code></pre></div>
+
+
+<p>Hopefully it will be useful to others as much as it is to me.</p>
+
+			</div>
+		</content>
+	</entry>
+	
+	<entry>
+		<title>Web à Québec 2012 — Introduction à Ruby</title>
+		<link href="http://notes.exomel.com/2012/02/waq-2012-introduction-a-ruby.html" />
+		<updated>2012-02-25T00:00:00-05:00</updated>
+		<id>http://notes.exomel.com/2012/02/waq-2012-introduction-a-ruby</id>
+		<content type="xhtml">
+			<div xmlns='http://www.w3.org/1999/xhtml'>
+			<p>J’ai eu la chance de présenter « <a href="http://webaquebec.org/programmation/14/">Introduction à Ruby</a> » lors de l’évènement <a href="http://webaquebec.org">Web à Québec</a> 2012. Ma présentation s’adressait en grande partie aux programmeurs qui n’avaient pas d’expérience avec le langage, mais qui se débrouillent en PHP, Python, Java, etc.</p>
+
+<p>La présentation est <a href="http://speakerdeck.com/u/remi/p/introduction-a-ruby">disponible</a> sur Speaker Deck et le code source de l’application utilisée en exemple l’<a href="https://github.com/remiprev/waq-2012">est également</a> sur GitHub.</p>
+
+<script src="http://speakerdeck.com/embed/4f466aacf91a2400220202b4.js"></script>
+
+
+<p>J’espère pouvoir redonner cette présentation ailleurs dans le futur et ainsi faire en sorte que la communauté Ruby au Québec continue de croître au rhythme où elle le fait présentement.</p>
+
+			</div>
+		</content>
+	</entry>
+	
+	<entry>
+		<title>Nid</title>
+		<link href="http://notes.exomel.com/2010/10/nid.html" />
+		<updated>2010-10-17T00:00:00-04:00</updated>
+		<id>http://notes.exomel.com/2010/10/nid</id>
+		<content type="xhtml">
+			<div xmlns='http://www.w3.org/1999/xhtml'>
+			<p>J’ai installé <a href="http://pongsocket.com/tweetnest/">Tweetnest</a> sur <a href="http://twitter.remiprevost.com">twitter.remiprevost.com</a> il y a quelques mois. Je trouvais le concept très intéressant : héberger ses propres <em>tweets</em> et pouvoir les visualiser par année/mois/jour. Retrouver le contrôle sur ses propres données.</p>
+
+<p>Il y a quelques jours, j’ai également voulu expérimenter avec <a href="http://datamapper.org">DataMapper</a>, après avoir été obligé d’utiliser ActiveRecord depuis quelques mois avec <a href="http://rubyonrails.org">Ruby on Rails</a>. Je voulais également pousser un peu plus loin mon utilisation de <a href="http://sinatrarb.com">Sinatra</a>, avec lequel je n’avais monté qu’un très petit site, <a href="http://exomel.com">mon portfolio</a>.</p>
+
+<p>J’ai eu l’idée de combiner les deux idées; et ce qui en a résulté s’appelle <a href="http://github.com/remiprev/nid">Nid</a>.</p>
+
+<p><a href="http://nid.heroku.com"><img src="/img/billets/nid-1.jpg" alt="Capture d’écran de Nid" /></a></p>
+
+<p>Le projet est très peu développé, mais j’ai déjà installé une version fonctionnelle sur <a href="http://nid.heroku.com">nid.heroku.com</a>. Il m’a été très facile de déployer l’application sur <a href="http://heroku.com">Heroku</a> puisqu’elle utilise <a href="http://gembundler.com">Bundler</a> pour gérer ses dépendances.</p>
+
+<h2>Installation</h2>
+
+<p>Vous voulez déployer votre propre instance de Nid sur Heroku? Très facile. Il suffit de cloner le <em>repository</em> Git :</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>git clone git://github.com/remiprev/nid.git
+</code></pre></div>
+
+
+<p>Ensuite, on crée notre application sur Heroku :</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>gem install heroku
+<span class="nv">$ </span>heroku create nid-exemple
+Creating nid-exemple.......... <span class="k">done</span>
+Created http://nid-exemple.heroku.com/ | git@heroku.com:nid-exemple.git
+</code></pre></div>
+
+
+<p>Ensuite, on doit copier <code>nid.defaults.yml</code> vers <code>nid.yml</code>, configurer une <a href="http://dev.twitter.com/apps/new">nouvelle application Twitter</a> et remplir les 4 valeurs manquantes dans le fichier de configuration :</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span><span class="nb">cd </span>config
+<span class="nv">$ </span>cp nid.defaults.yml nid.yml
+<span class="nv">$ </span>cat nid.yml
+twitter:
+  consumer_key: 
+  consumer_secret: 
+  access_token: 
+  access_secret: 
+</code></pre></div>
+
+
+<p>Par la suite, on doit modifier le fichier <code>nid.rb</code> pour lui dire d’utiliser la base de données fournie par Heroku :</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="c1"># DataMapper.setup :default, &#39;postgres://localhost/nid_development&#39;</span>
+<span class="no">DataMapper</span><span class="o">.</span><span class="n">setup</span> <span class="ss">:default</span><span class="p">,</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;DATABASE_URL&#39;</span><span class="o">]</span>
+</code></pre></div>
+
+
+<p>Maintenant que toutes les modifications sont faites, on peut <em>committer</em> nos changements et les <em>pusher</em> à la branche <code>heroku</code> :</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>git add config/nid.yml nid.rb
+<span class="nv">$ </span>git commit -m <span class="s2">&quot;Add custom configuration&quot;</span>
+<span class="nv">$ </span>git push heroku master
+-----&gt; Heroku receiving push
+-----&gt; Rack app detected
+-----&gt; Gemfile detected, running Bundler version 1.0.0
+       ...
+       ...
+       ...
+-----&gt; Launching.... <span class="k">done</span>
+<span class="k">       </span>http://nid-exemple.heroku.com deployed to Heroku
+</code></pre></div>
+
+
+<p>Heroku va déployer l’application en installant d’abord toutes les <em>gems</em> qu’elle nécéssite. Lorsque l’opération est complétée, l’application fonctionne, mais la base de données est toujours vide.</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>heroku rake import
+...
+...
+...
+<span class="s2">&quot;Sleeping for 10 seconds...&quot;</span>
+</code></pre></div>
+
+
+<p>Si vous apercevez cette ligne, c’est signe que des <em>tweets</em> ont déjà commencé à peupler votre base de données! Vous pouvez naviguer vers l’URL de votre application (<em>http://votre-application.heroku.com</em>) pour le constater. Par contre, si vous apercevez cette ligne :</p>
+
+<div class="highlight"><pre><code class="bash">rake aborted!
+<span class="o">(</span>502<span class="o">)</span>: Bad Gateway
+</code></pre></div>
+
+
+<p>C’est signe que l’API de Twitter éprouve des problèmes. Il suffit de relancer la commande <code>heroku rake import</code> jusqu’à ce que cette dernière se termine normalement, sans instruction <code>rake aborted!</code>. Le processus d’importation importe toujours des <em>tweets</em> plus anciens que ceux déjà dans la base de données; il n’y a donc pas de risque d’obtenir des <em>tweets</em> en double.</p>
+
+<p>Lorsque tous vos tweets seront importés, il ne restera plus qu’à les mettre à jour lorsque vous en posterez de nouveaux. Cette méthode n’est pas encore automatisée (au moment d’écrire ces lignes!) et doit être effectuée à l’aide de la commande suivante :</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>heroku rake update
+</code></pre></div>
+
+
+<p>Encore une fois, cette commande ne créera pas de <em>tweets</em> dupliqués.</p>
+
+<h2>Développement</h2>
+
+<p>Nid est loin d’être une application parfaite. Beaucoup de lacunes sont présentes au niveau visuel, fonctionnel, performance, etc. Par contre, je crois qu’elle a un bon potentiel, surtout en ce qui a trait à sa facilité (pour une application Ruby!) de déploiement.</p>
+
+<p>Si vous désirez contribuer au projets, n’hésitez pas à m’envoyer une “<em>pull request</em>” via la <a href="http://github.com/remiprev/nid">page du projet sur GitHub</a>.</p>
+
+			</div>
+		</content>
+	</entry>
+	
+	<entry>
+		<title>Expressions régulières : les lookarounds</title>
+		<link href="http://notes.exomel.com/2010/09/expressions-regulieres-les-lookarounds.html" />
+		<updated>2010-09-22T00:00:00-04:00</updated>
+		<id>http://notes.exomel.com/2010/09/expressions-regulieres-les-lookarounds</id>
+		<content type="xhtml">
+			<div xmlns='http://www.w3.org/1999/xhtml'>
+			<p>Une des fonctionnalités des expressions régulières les plus méconnues est le concept des <em>lookaround</em>s. Leur fonction principale consiste à capturer une certaine partie de l’expression seulement si elle est (<em>positive</em>) ou si elle n’est pas (<em>negative</em>) précédée par (<em>lookbehind</em>) ou suivie (<em>lookahead</em>) par une autre expression. Cela s’avère être très pratique lorsqu’on veut capturer une expression dans un contexte de négation.</p>
+
+<p>Par exemple, si je veux chercher tous les nombres entiers qui ne sont pas précédés par une espace, il est facile de faire :</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="c1"># facile!</span>
+<span class="sr">/[^\s][0-9]+/</span>
+</code></pre></div>
+
+
+<p>Au-delà d’un caractère négatif, cela ne fonctionne plus. Qu’arrive-t-il si, par exemple, on veut chercher tous les nombres entiers qui ne sont pas précédés par la chaine <code>"Prix: "</code> ?</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="c1"># oups, ça ne fonctionne pas…</span>
+<span class="sr">/[^P][^r][^i][^x][^:][^\s][0-9]+/</span>
+</code></pre></div>
+
+
+<p>C’est donc là qu’utiliser un “<em>negative lookbehind</em>” se révèle être la meilleure solution :</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="c1"># on capture tous les nombres qui ne sont pas précédés par &quot;Prix: &quot; ou par un autre chiffre.</span>
+<span class="sr">/(?&lt;!Prix:\s|[0-9])[0-9]+/</span>
+
+<span class="c1"># dans Vim, on utilisera :</span>
+<span class="sr">/\v(Prix:\s|[0-9])@&lt;![0-9]+</span>
+</code></pre></div>
+
+
+<p>Ce n’est pas la fonctionnalité que j’utilise le plus souvent lorsque je travaille avec des expressions régulières (j’espère qu’après avoir écrit ce billet, je l’utiliserai encore davantage) mais elle m’a fait sauvé bien du temps ces dernières semaines.</p>
+
+<p>Connaissez-vous d’autres exemples concrets dans lesquels il serait pertinent d’utiliser un <em>lookaround</em> ?</p>
+
+			</div>
+		</content>
+	</entry>
+	
+	<entry>
+		<title>J’utilise ça</title>
+		<link href="http://notes.exomel.com/2010/09/ce-que-jutilise.html" />
+		<updated>2010-09-20T00:00:00-04:00</updated>
+		<id>http://notes.exomel.com/2010/09/ce-que-jutilise</id>
+		<content type="xhtml">
+			<div xmlns='http://www.w3.org/1999/xhtml'>
+			<div class="note"><em>Cette note a été rédigée en 2010 et contient plusieurs informations qui ne sont plus véridiques. Comme je ne veux pas la mettre à jour à chaque fois que change d’outils, je préfère la laisser au même état que lorsque je l’ai écrite. À lire à vos propres risques et périls!</em></div>
+
+
+<p>Ce billet devait à l’origine être publié sur <a href="http://utilise.ca">utilise.ca</a>, un site que j’ai créé il y a quelques mois (en m’inspirant fortement du site <a href="http://usesthis.com">The Setup</a>) dans le but de partager les outils utilisés au quotidien par des <em>geeks</em> francophones. J’ai toujours été hésitant à publier ce billet sur le site, étant donné que je suis son créateur. J’ai donc décidé de le publier sur ce blogue puisqu’il s’agit de mon espace personnel, et non d’un projet indépendant.</p>
+
+<h2>Qui êtes-vous et que faites-vous dans la vie?</h2>
+
+<p>Je m’appelle Rémi Prévost et je suis développeur Web. Je suis passionné de toutes les technologies qui servent à publier du contenu sur le Web : HTML, XHTML, XML, CSS, Javascript, Atom, JSON, PHP, Python, Ruby, etc.</p>
+
+<p>Je suis l’auteur de <a href="http://www.pubwich.org">Pubwich</a>, un petit logiciel libre servant à créer une page HTML simple à partir du contenu publié sur le web par un individu. C’est ce logiciel qui propulse ma <a href="http://remiprevost.com">page personnelle</a>.</p>
+
+<p>Dans le jour, je suis développeur Web chez <a href="http://www.mirego.com/">Mirego</a>. Le soir, je suis « CTO » (lire : responsable du code) de <a href="http://www.quincailleriesucree.com">Quincaillerie sucrée inc</a> (encore en développement au moment d’écrire ces lignes!).</p>
+
+<h2>Qu’utilisez-vous comme matériel?</h2>
+
+<p>J’ai été un utilisateur de Windows (plutôt par obligation/ignorance/<a href="https://secure.wikimedia.org/wikipedia/en/wiki/Fear,_uncertainty_and_doubt">FUD</a> que par choix personnel) pendant toute ma « jeunesse » jusqu’à ce que je découvre <a href="http://www.ubuntu.com">Ubuntu</a> et que je me décide enfin à faire le grand saut vers ce système d’exploitation open-source. J’ai utilisé Ubuntu pendant un peu plus d’un an, en fait jusqu’à ce que j’ai eu besoin de me doter d’un nouvel ordinateur portable. À ce moment, aucun ordinateur vendu avec Ubuntu pré-installé (ou à tout le moins, sans Windows) ne convenait à mes besoins et c’est à ce moment que je me suis tourné vers la plateforme Mac, où j’étais assuré de n’avoir aucun problème de compatibilité entre le système d’exploitation et les périphériques — je déteste la compatibilité <em>hardware</em>.</p>
+
+<p>Mon ordinateur de travail est donc un <a href="http://www.apple.com/ca/macbookpro/">Macbook Pro 13″</a> 2.26Ghz avec 4Gb de mémoire vive. Un iPhone 3GS me sert aussi de compagnon pour consulter Wikipédia (<a href="https://twitter.com/remi/statuses/2950906098">c’est le cas</a> lors de 70% de mes interrogations) lorsque je suis à l’extérieur.</p>
+
+<h2>Qu’utilisez-vous comme logiciels?</h2>
+
+<p>Venant du monde de GNU/Linux, j’utilise beaucoup d’applications en « command-line ». J’utilise <a href="http://tmux.sourceforge.net/">tmux</a> dans une fenêtre unique de Terminal.app (ouverte en mode <em>fullscreen</em> à l’aide de <a href="http://visor.binaryage.com/">Visor</a>) pour pouvoir avoir plusieurs instances de <a href="http://www.zsh.org">zsh</a>, mon shell favori. J’utilise <a href="http://mxcl.github.com/homebrew/">Homebrew</a> (pour qui j’ai conçu la page d’accueil) pour gérer l’installation d’utilitaires et de logiciels comme <a href="http://betterthangrep.com/">ack</a>, <a href="http://www.nongnu.org/atool/">atool</a>, <a href="http://www.git-scm.com">git</a>, <a href="http://htop.sourceforge.net/">htop</a>, <a href="http://irssi.org/">irssi</a>, <a href="http://www.jedsoft.org/most/">most</a>, <a href="http://w3m.sourceforge.net/">w3m</a> et <a href="http://www.gnu.org/software/wget/">wget</a>.</p>
+
+<p><img src="/img/billets/macvim.jpg" alt="Une capture d’écran de MacVim" /></p>
+
+<p>J’utilise exclusivement <a href="http://code.google.com/p/macvim/">MacVim.app</a> pour écrire du code. J’ai commencé à utiliser <a href="http://www.vim.org">Vim</a> alors que j’étais sur Ubuntu et je suis rapidement devenu accro à sa syntaxe et ses fonctionnalités complexes mais extrêmement puissantes. Une des choses qui me plait le plus avec Vim est sa capacité à être extensible et personnalisable à 100%, et ce de façon ultra-simple, sans avoir besoin de connaître les rouages du code source du logiciel. Quelques lignes de « Vimscript » et on se retrouve rapidement avec une nouvelle fonctionnalité prête à être partagée avec l’immense communauté de Vim.</p>
+
+<p><img src="/img/billets/firefox.jpg" alt="Une capture d’écran de Firefox 4.0" /></p>
+
+<p>Au même titre que Vim est mon seul éditeur de code, <a href="http://www.getfirefox.com">Mozilla Firefox</a> (armé de l’extension <a href="http://vimperator.org/vimperator">Vimperator</a>, qui lui donne plusieurs fonctionnalités et raccourcis similaires à Vim) est mon seul navigateur Web. Au fil des années (j’ai commencé à l’utiliser alors qu’il s’appellait encore <em>Firebird</em>), Firefox et ses nombreuses extensions me sont devenus indispensables pour mon travail ainsi que pour naviguer le Web de façon régulière. Quelques extensions essentielles : <a href="http://adblockplus.org">AdBlock Plus</a>, <a href="http://www.colorzilla.com/firefox/">ColorZilla</a>, <a href="https://addons.mozilla.org/en-US/firefox/addon/10869/">JSONView</a>, <a href="http://livehttpheaders.mozdev.org/">Live HTTP Headers</a>, <a href="http://www.getfirebug.com">Firebug</a>, <a href="http://www.ghostery.com">Ghostery</a>, <a href="https://addons.mozilla.org/en-US/firefox/addon/748">Greasemonkey</a>, <a href="https://mozillalabs.com/weave/">Weave</a>, <a href="http://chrispederick.com/work/web-developer/">Web Developer</a>.</p>
+
+<p>J’ai également été un « <em>early adopter</em> » de <a href="http://www.getthunderbird.com">Thunderbird</a>, que j’ai utilisé alors que j’étais sur Windows et Ubuntu. Cependant, lorsque je suis passé à Mac OS X, j’ai changé pour <a href="http://www.postbox-inc.com/">Postbox</a>, qui combine le pouvoir des centaines d’extensions de Thunderbird et une bien meilleure intégration avec le style visuel du système d’exploitation — chose que Thunderbird n’a pas encore réussi à faire, contrairement à Firefox.</p>
+
+<p>Je déteste iTunes (trop grande consommation de mémoire, tente d’être un lecteur multimédia + gestionnaire de média + magasin en ligne + réseau social) et ne l’utilise que pour des besoins de synchronisation. Pour écouter de la musique, je préfère de loin <a href="http://www.ecouteapp.com">Ecoute</a>, un logiciel ultra-léger et personnalisable qui permet de jouer les fichiers de la bibliothèque d’iTunes sans ouvrir ce dernier, en plus d’afficher un petit « widget » personnalisable sur le bureau avec les informations du morceau actuel, dont la couverture d’album (la seule chose visible en permanence sur mon bureau).</p>
+
+<p><img src="/img/billets/alfred.jpg" alt="Une capture d’écran d’Alfred" /></p>
+
+<p>Pour augmenter ma productivité, j’utilise <a href="http://www.alfredapp.com">Alfred</a> pour lancer des applications et effectuer des recherches sur le Web très rapidement; <a href="http://coderage-software.com/">Zooom2</a> pour déplacer et redimensionner des fenêtres sans avoir à déplacer mon curseur sur la barre de titre ou le coin inférieur droit de chaque fenêtre; <a href="http://www.keyboardmaestro.com/main/">Keyboard Maestro</a> pour accélerer l’exécution de certaines tâches répétitives.</p>
+
+<p>Finalement, en rafale : <a href="http://culturedcode.com/things/">Things</a> pour gérer la liste de choses qu’il me reste à faire, <a href="http://www.adium.im">Adium</a> pour converser rapidement, <a href="http://agilewebsolutions.com/products/1Password">1Password</a> pour stocker mes mots de passe, <a href="http://feedafever.com">Fever</a> pour lire mes fils RSS/Atom, <a href="http://www.echofon.com/">Echofon</a> (avec l’<a href="http://nadesign.net/#goodies?echofon">icône personnalisée</a> de Na Wong) pour dire « ce que je fais », <a href="http://thelittleappfactory.com/evom/">Evom</a> pour convertir les épisodes de South Park pour que je puisse les écouter sur mon iPhone, <a href="http://www.poedit.net/">Poedit</a> pour modifier des fichiers de traduction, <a href="http://www.sequelpro.com/">Sequel Pro</a> pour me connecter à des bases de données, <a href="http://wakaba.c3.cx/s/apps/unarchiver.html">The Unarchiver</a> pour décompresser des fichiers, <a href="http://www.transmissionbt.com/">Transmission</a> pour télécharger les épisodes de South Park et Community, <a href="http://www.cyberduck.ch">Cyberduck</a> pour me connecter à des serveurs FTP et Amazon S3, <a href="http://bjango.com/apps/istatmenus/">iStats Menu</a> pour afficher le niveau d’utilisation de mon CPU, de mémoire vive utilisée et de charge de batterie restante dans ma barre de menu, <a href="http://www.sourcemac.com/?page=fstream">FStream</a> pour écouter des flux audios sur le Web.</p>
+
+<p>Dans mon iPhone, les applications que j’utilisent le plus (autres que les applications qui complémentent les logiciels déjà mentionnés) : <a href="http://itunes.apple.com/ca/app/wikipanion-plus/id290613987?mt=8">Wikipanion+</a>, <a href="http://itunes.apple.com/ca/app/ireddit/id302732279?mt=8">iReddit</a>, <a href="http://itunes.apple.com/ca/app/gowalla/id304510106?mt=8">Gowalla</a>, <a href="http://itunes.apple.com/ca/app/touchterm-pro-ssh/id296468040?mt=8">TouchTerm Pro SSH</a>, <a href="http://itunes.apple.com/ca/app/tweetie-2/id333903271?mt=8">Tweetie</a>, <a href="http://itunes.apple.com/ca/app/plants-vs-zombies/id350642635?mt=8">Plants vs. Zombies</a>, <a href="http://itunes.apple.com/ca/app/unblock-me/id315021242?mt=8">Unblock Me</a> et <a href="http://ego-app.com/">Ego</a>.</p>
+
+<h2>L’unique outil dont vous ne pourriez absolument vous passer, et pourquoi?</h2>
+
+<p>Je n’aime pas penser qu’il peut y avoir <strong>un seul outil</strong> dans mon setup qui ne pourrait être remplacé. J’aime penser qu’étant donné que je travaille avec des technologies et des langages de programmation ouverts, je ne suis lié avec aucun logiciel propriétaire pour faire mon travail. Tant que j’ai un système de fichiers respectant le <a href="https://secure.wikimedia.org/wikipedia/fr/wiki/POSIX">standard POSIX</a>, un éditeur de code qui peut lire et écrire des fichiers, un navigateur Web qui peut m’afficher des URLs dont le contenu est servi en <code>text/html</code> et un serveur Web qui gère des requêtes HTTP, je suis satisfait!</p>
+
+			</div>
+		</content>
+	</entry>
+	
+	<entry>
+		<title>Un type de champ MySQL magique avec JSON</title>
+		<link href="http://notes.exomel.com/2010/09/has_json_fields.html" />
+		<updated>2010-09-18T00:00:00-04:00</updated>
+		<id>http://notes.exomel.com/2010/09/has_json_fields</id>
+		<content type="xhtml">
+			<div xmlns='http://www.w3.org/1999/xhtml'>
+			<p>J’ai développé le plugin <code>has_json_fields</code> en travaillant sur <a href="http://www.quincailleriesucree.com">Quincaillerie sucrée</a> où il était nécessaire de stocker un hachage arbitraire (la variable <code>params</code> de Rails qui contient des informations fournies par <a href="http://www.paypal.com">PayPal</a> lors de notifications <em>IPN</em>) dans la base de données.</p>
+
+<p>Comme il est préférable de stocker ces informations en format texte (car la structure du hachage n’est jamais la même), JSON m’a semblé être la meilleure solution. Cependant, il peut être fastidieux de toujours convertir les données lorsqu’on les modifie ou que l’on veut accéder à une clé précise :</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="nb">require</span> <span class="s1">&#39;json&#39;</span>
+<span class="k">class</span> <span class="nc">OrdersController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+
+  <span class="k">def</span> <span class="nf">show</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="no">Order</span><span class="o">.</span><span class="n">get</span> <span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="no">JSON</span><span class="o">.</span><span class="n">parse</span> <span class="n">order</span><span class="o">.</span><span class="n">paypal_metadata</span>
+    <span class="nb">puts</span> <span class="n">metadata</span><span class="o">[</span><span class="s2">&quot;address_name&quot;</span><span class="o">]</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">update</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="no">Order</span><span class="o">.</span><span class="n">get</span> <span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span>
+    <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">:foo</span> <span class="o">=&gt;</span> <span class="ss">:bar</span> <span class="p">}</span>
+    <span class="n">order</span><span class="o">.</span><span class="n">paypal_metadata</span> <span class="o">=</span> <span class="n">metadata</span><span class="o">.</span><span class="n">to_json</span>
+    <span class="n">order</span><span class="o">.</span><span class="n">save</span>
+  <span class="k">end</span>
+
+<span class="k">end</span>
+</code></pre></div>
+
+
+<p>C’est donc pour éviter toutes ces conversions manuelles que j’ai décidé de créer <code>has_json_fields</code>, qui n’est en fait qu’un très simple plugin qui n’ajoute qu’une seule méthode éponyme à tous les objets.</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="k">class</span> <span class="nc">Order</span> <span class="o">&lt;</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Base</span>
+  <span class="n">has_json_fields</span> <span class="ss">:paypal_metadata</span>
+<span class="k">end</span>
+</code></pre></div>
+
+
+<p>Ensuite, on peut l’utiliser ainsi :</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="k">class</span> <span class="nc">OrdersController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+
+  <span class="k">def</span> <span class="nf">show</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="no">Order</span><span class="o">.</span><span class="n">get</span> <span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span>
+    <span class="nb">puts</span> <span class="n">order</span><span class="o">.</span><span class="n">paypal_metadata</span><span class="o">[</span><span class="ss">:address_name</span><span class="o">]</span> <span class="c1"># les clés sont des symboles</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">update</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="no">Order</span><span class="o">.</span><span class="n">get</span> <span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span>
+    <span class="n">order</span><span class="o">.</span><span class="n">paypal_metadata</span> <span class="o">=</span> <span class="p">{</span> <span class="ss">:foo</span> <span class="o">=&gt;</span> <span class="ss">:bar</span> <span class="p">}</span>
+    <span class="n">order</span><span class="o">.</span><span class="n">save</span>
+  <span class="k">end</span>
+
+<span class="k">end</span>
+</code></pre></div>
+
+
+<p>Le <a href="http://github.com/remiprev/has_json_fields">code source du plugin</a> est hébergé chez <a href="http://github.com">GitHub</a> et disponible sous <a href="http://github.com/remiprev/has_json_fields/blob/master/LICENSE">license MIT</a>.</p>
+
+			</div>
+		</content>
+	</entry>
+	
+	<entry>
+		<title>Utiliser cache_fu avec une application Rails</title>
+		<link href="http://notes.exomel.com/2010/09/utiliser-cache-fu-avec-une-application-rails.html" />
+		<updated>2010-09-16T00:00:00-04:00</updated>
+		<id>http://notes.exomel.com/2010/09/utiliser-cache-fu-avec-une-application-rails</id>
+		<content type="xhtml">
+			<div xmlns='http://www.w3.org/1999/xhtml'>
+			<p>Le plugin <a href="http://github.com/defunkt/cache_fu"><code>cache_fu</code></a> a été développé par <a href="http://chriswanstrath.com/">Chris Wanstrath</a> (connu pour être un des co-fondateurs de <a href="http://github.com">GitHub</a>) à partir du code du plugin déjà-existant <code>acts_as_cached</code>. Il n’a qu’un seul but : permettre à une application <a href="http://rubyonrails.org">Ruby on Rails</a> de stocker des enregistrements <code>ActiveRecord</code> sur un serveur <code>memcached</code> pour éviter de faire trop de requête à la base de données.</p>
+
+<p>Il existe très peu de documentation pour le plugin, c’est pourquoi j’ai voulu lui consacrer un billet avec des exemples d’utilisation, même s’il n’est plus développé par son auteur.</p>
+
+<h2>Installation</h2>
+
+<p>Pour installer <code>memcached</code>, je vous conseille <a href="http://mxcl.github.com/homebrew">homebrew</a>.</p>
+
+<div class="highlight"><pre><code class="bash"><span class="c"># Installe la dernière version de memcached via homebrew</span>
+<span class="nv">$ </span>brew install memcached
+
+<span class="c"># fais tourner memcached sur le port 11211 en mode verbose</span>
+<span class="nv">$ </span>memcached -p 11211 -vv
+</code></pre></div>
+
+
+<p>Ensuite, pour install le plugin. À partir de votre dossier d’application Rails :</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>./script/plugin install http://github.com/defunkt/cache_fu.git
+</code></pre></div>
+
+
+<p>La configuration de <code>cache_fu</code> via le fichier <code>config/memcached.yml</code> est assez simple à comprendre.</p>
+
+<h2>La base</h2>
+
+<p>Le plugin est très simple à utiliser. On n’a qu’à spécifier dans notre modèle qu’on veut que ce dernier et ses instances répondent aux méthodes de cache :</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="k">class</span> <span class="nc">Kit</span> <span class="o">&lt;</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Base</span>
+  <span class="n">acts_as_cached</span>
+<span class="k">end</span>
+</code></pre></div>
+
+
+<p>Cela ajoute la méthode <code>get_cache</code> à la classe. On peut ensuite récupérer les données dans la base de données comme on le ferait avec un <code>find</code>.</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="k">class</span> <span class="nc">KitsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">show</span>
+    <span class="c1"># @kit = Kit.find params[:id]</span>
+    <span class="vi">@kit</span> <span class="o">=</span> <span class="no">Kit</span><span class="o">.</span><span class="n">get_cache</span> <span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+
+
+<p>Un des aspects très important à garder en tête lorsqu’on utilise <code>cache_fu</code> (ou tout autre méthode de cache) est qu’il est la tâche du client d’invalider les données du serveur <code>memcached</code> lorsque celles-ci sont rendues obsolètes par l’application. Pour ce faire, nous pouvons utiliser les “callbacks” de Rails, <code>after_save</code> et <code>after_destroy</code> :</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="k">class</span> <span class="nc">Kit</span> <span class="o">&lt;</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Base</span>
+  <span class="n">acts_as_cached</span>
+
+  <span class="k">def</span> <span class="nf">after_save</span>
+    <span class="nb">self</span><span class="o">.</span><span class="n">expire_cache</span>
+  <span class="k">end</span>
+
+  <span class="k">def</span> <span class="nf">after_destroy</span>
+    <span class="nb">self</span><span class="o">.</span><span class="n">expire_cache</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+
+
+<p>Cela nous assure que lorsqu’un enregistrement est mis à jour, nous irons le récupérer à partir de la base de données la prochaine fois où nous en aurons besoin.</p>
+
+<h2>La cache locale</h2>
+
+<p>Si la structure de notre application nous demande d’aller chercher un même enregistrement plusieurs fois lors d’une seule même requête HTTP, la performance de l’application sera affectée puisqu’à chaque fois, une requête vers <code>memcached</code> sera effectuée. Pour remédier à ce problème, <code>cache_fu</code> fournit une cache <em>locale</em>.</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="k">class</span> <span class="nc">ApplicationController</span> <span class="o">&lt;</span> <span class="ss">ActionController</span><span class="p">:</span><span class="ss">:Base</span>
+  <span class="n">before_filter</span> <span class="ss">:local_cache_for_request</span>
+<span class="k">end</span>
+</code></pre></div>
+
+
+<p>Lorsqu’un enregistrement est récupéré via <code>memcached</code>, il est stocké dans la cache locale pour utilisation future dans la même requête. <code>Cache_fu</code> se charge également de tenir la cache locale à jour lorsqu’on appelle la méthode <code>expire_cache</code>.</p>
+
+<h2>Méthodes personnalisées</h2>
+
+<p>Il n’est pas rare de vouloir garder en cache le résultat d’une méthode de classe. Par exemple ici, on veut garder en cache la liste des kits qui se trouveront sur la page d’accueil de notre application :</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="k">def</span> <span class="nf">index</span>
+  <span class="vi">@kits</span> <span class="o">=</span> <span class="no">Kit</span><span class="o">.</span><span class="n">caches</span> <span class="ss">:homepage_kits</span>
+<span class="k">end</span>
+</code></pre></div>
+
+
+<p>Qu’est-ce qui se passe ici? La méthode <code>caches</code> appelle la fonction <code>homepage_kits</code> du modèle <code>Kit</code> et garde le résultat en cache.</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="k">class</span> <span class="nc">Kit</span> <span class="o">&lt;</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Base</span>
+  <span class="n">acts_as_cached</span>
+
+  <span class="k">def</span> <span class="nc">self</span><span class="o">.</span><span class="nf">homepage_kits</span>
+    <span class="no">Kit</span><span class="o">.</span><span class="n">find</span> <span class="ss">:all</span><span class="p">,</span> <span class="ss">:conditions</span> <span class="o">=&gt;</span> <span class="p">{</span> <span class="ss">:homepage_worthy</span> <span class="o">=&gt;</span> <span class="kp">true</span> <span class="p">},</span> <span class="ss">:order_by</span> <span class="o">=&gt;</span> <span class="s2">&quot;name ASC&quot;</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+
+
+<p>Cette technique est très utile pour conserver en cache des requêtes lourdes qui demandent beaucoup temps de traitement à la base de données.</p>
+
+<h2>Plusieurs enregistrements à la fois</h2>
+
+<p>Pour éviter de faire plusieurs requêtes consécutives au serveur <code>memcached</code>, on peut utiliser un <code>Array</code> comme premier paramètre de la méthode <code>get_cache</code>.</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="k">class</span> <span class="nc">KitsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">index</span>
+    <span class="vi">@kits</span> <span class="o">=</span> <span class="no">Kit</span><span class="o">.</span><span class="n">get_cache</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+
+
+<h2>Associations</h2>
+
+<p><code>Cache_fu</code> permet aussi de stocker les données associées à un modèle via les hooks <code>has_many</code>, <code>belongs_to</code> et autres.</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="k">class</span> <span class="nc">Kit</span> <span class="o">&lt;</span> <span class="ss">ActiveRecord</span><span class="p">:</span><span class="ss">:Base</span>
+  <span class="n">acts_as_cached</span> <span class="ss">:include</span> <span class="o">=&gt;</span> <span class="ss">:comments</span>
+  <span class="n">has_many</span> <span class="ss">:comments</span>
+<span class="k">end</span>
+
+<span class="k">class</span> <span class="nc">KitsController</span> <span class="o">&lt;</span> <span class="no">ApplicationController</span>
+  <span class="k">def</span> <span class="nf">show</span>
+    <span class="vi">@kit</span> <span class="o">=</span> <span class="no">Kit</span><span class="o">.</span><span class="n">get_cache</span> <span class="n">params</span><span class="o">[</span><span class="ss">:id</span><span class="o">]</span>
+    <span class="c1"># @kit.comments est stocké en cache</span>
+    <span class="c1"># @kit.comments =&gt; [&lt;#Comment&gt;, …]</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+
+
+<p>Il faut faire attention avec les associations gardées en cache, car plus on stocke de données via <code>memcached</code>, plus on est responsable du maintien de la « fraicheur » de la cache lors de la modification ou de la suppression de ces données.</p>
+
+<p>Par exemple, si un objet est associé à 5 objets et qu’il est gardés en cache via association, lorsqu’on le modifie, on devra faire expirer les 5 objets qui contiennent l’objet maintenant obsolète dans leur cache.</p>
+
+			</div>
+		</content>
+	</entry>
+	
+</feed>

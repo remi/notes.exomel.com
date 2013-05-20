@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="fr-ca">
+<head>
+  <!-- This is Heroku, yay. -->
+  <meta charset="UTF-8">
+  <title>Expressions régulières : les lookarounds — Les notes de Rémi Prévost</title>
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+  <link href="http://fonts.googleapis.com/css?family=Lato:light,regular,regularitalic,lightitalic,bold&amp;v1" media="all" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/screen.css" type="text/css" media="screen" />
+  <link rel="alternate" href="/atom.xml" title="Les notes de Rémi Prévost — dernières notes" type="application/atom+xml" />
+  <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  <script type="text/javascript">var _gaq = _gaq || []; _gaq.push(['_setAccount', 'UA-9062654-4']); _gaq.push(['_trackPageview']); (function() { var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true; ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js'; var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s); })();</script>
+</head>
+<body class="template-single">
+  <div id="wrap">
+    <header class="group">
+      <p class="main">
+        <strong><a href="/">Les <em>notes</em> de <em>Rémi Prévost</em></a></strong><br />
+        <span>vim, git, ruby, html5 et autres buzzwords.</span>
+      </p>
+      <hr />
+    </header>
+    <div id="content">
+            <article>
+        <time>Mercredi, le 22 septembre 2010</time>
+        <h1>Expressions régulières : les <em>lookaround</em>s</h1>
+        <div class="article-content">
+          <p>Une des fonctionnalités des expressions régulières les plus méconnues est le concept des <em>lookaround</em>s. Leur fonction principale consiste à capturer une certaine partie de l’expression seulement si elle est (<em>positive</em>) ou si elle n’est pas (<em>negative</em>) précédée par (<em>lookbehind</em>) ou suivie (<em>lookahead</em>) par une autre expression. Cela s’avère être très pratique lorsqu’on veut capturer une expression dans un contexte de négation.</p>
+
+<p>Par exemple, si je veux chercher tous les nombres entiers qui ne sont pas précédés par une espace, il est facile de faire :</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="c1"># facile!</span>
+<span class="sr">/[^\s][0-9]+/</span>
+</code></pre></div>
+
+
+<p>Au-delà d’un caractère négatif, cela ne fonctionne plus. Qu’arrive-t-il si, par exemple, on veut chercher tous les nombres entiers qui ne sont pas précédés par la chaine <code>"Prix: "</code> ?</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="c1"># oups, ça ne fonctionne pas…</span>
+<span class="sr">/[^P][^r][^i][^x][^:][^\s][0-9]+/</span>
+</code></pre></div>
+
+
+<p>C’est donc là qu’utiliser un “<em>negative lookbehind</em>” se révèle être la meilleure solution :</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="c1"># on capture tous les nombres qui ne sont pas précédés par &quot;Prix: &quot; ou par un autre chiffre.</span>
+<span class="sr">/(?&lt;!Prix:\s|[0-9])[0-9]+/</span>
+
+<span class="c1"># dans Vim, on utilisera :</span>
+<span class="sr">/\v(Prix:\s|[0-9])@&lt;![0-9]+</span>
+</code></pre></div>
+
+
+<p>Ce n’est pas la fonctionnalité que j’utilise le plus souvent lorsque je travaille avec des expressions régulières (j’espère qu’après avoir écrit ce billet, je l’utiliserai encore davantage) mais elle m’a fait sauvé bien du temps ces dernières semaines.</p>
+
+<p>Connaissez-vous d’autres exemples concrets dans lesquels il serait pertinent d’utiliser un <em>lookaround</em> ?</p>
+
+        </div>
+        <div class="article-meta">
+          Cette note a été publiée le 22 septembre 2010 par <a href="http://exomel.com">Rémi Prévost</a>. Vous pouvez lui faire part de vos commentaires par courriel à <code>remi</code> suivi du symbole habituel puis de <code>exomel.com</code>. Vous devriez également le suivre sur Twitter via <a href="http://twitter.com/remi">@remi</a>.
+        </div>
+      </article>
+
+    </div>
+  </div>
+</body>
+</html>
+

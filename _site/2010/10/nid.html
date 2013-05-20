@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="fr-ca">
+<head>
+  <!-- This is Heroku, yay. -->
+  <meta charset="UTF-8">
+  <title>Nid — Les notes de Rémi Prévost</title>
+  <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+  <link href="http://fonts.googleapis.com/css?family=Lato:light,regular,regularitalic,lightitalic,bold&amp;v1" media="all" rel="stylesheet" type="text/css">
+  <link rel="stylesheet" href="/css/screen.css" type="text/css" media="screen" />
+  <link rel="alternate" href="/atom.xml" title="Les notes de Rémi Prévost — dernières notes" type="application/atom+xml" />
+  <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+  <script type="text/javascript">var _gaq = _gaq || []; _gaq.push(['_setAccount', 'UA-9062654-4']); _gaq.push(['_trackPageview']); (function() { var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true; ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js'; var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s); })();</script>
+</head>
+<body class="template-single">
+  <div id="wrap">
+    <header class="group">
+      <p class="main">
+        <strong><a href="/">Les <em>notes</em> de <em>Rémi Prévost</em></a></strong><br />
+        <span>vim, git, ruby, html5 et autres buzzwords.</span>
+      </p>
+      <hr />
+    </header>
+    <div id="content">
+            <article>
+        <time>Dimanche, le 17 octobre 2010</time>
+        <h1>Nid</h1>
+        <div class="article-content">
+          <p>J’ai installé <a href="http://pongsocket.com/tweetnest/">Tweetnest</a> sur <a href="http://twitter.remiprevost.com">twitter.remiprevost.com</a> il y a quelques mois. Je trouvais le concept très intéressant : héberger ses propres <em>tweets</em> et pouvoir les visualiser par année/mois/jour. Retrouver le contrôle sur ses propres données.</p>
+
+<p>Il y a quelques jours, j’ai également voulu expérimenter avec <a href="http://datamapper.org">DataMapper</a>, après avoir été obligé d’utiliser ActiveRecord depuis quelques mois avec <a href="http://rubyonrails.org">Ruby on Rails</a>. Je voulais également pousser un peu plus loin mon utilisation de <a href="http://sinatrarb.com">Sinatra</a>, avec lequel je n’avais monté qu’un très petit site, <a href="http://exomel.com">mon portfolio</a>.</p>
+
+<p>J’ai eu l’idée de combiner les deux idées; et ce qui en a résulté s’appelle <a href="http://github.com/remiprev/nid">Nid</a>.</p>
+
+<p><a href="http://nid.heroku.com"><img src="/img/billets/nid-1.jpg" alt="Capture d’écran de Nid" /></a></p>
+
+<p>Le projet est très peu développé, mais j’ai déjà installé une version fonctionnelle sur <a href="http://nid.heroku.com">nid.heroku.com</a>. Il m’a été très facile de déployer l’application sur <a href="http://heroku.com">Heroku</a> puisqu’elle utilise <a href="http://gembundler.com">Bundler</a> pour gérer ses dépendances.</p>
+
+<h2>Installation</h2>
+
+<p>Vous voulez déployer votre propre instance de Nid sur Heroku? Très facile. Il suffit de cloner le <em>repository</em> Git :</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>git clone git://github.com/remiprev/nid.git
+</code></pre></div>
+
+
+<p>Ensuite, on crée notre application sur Heroku :</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>gem install heroku
+<span class="nv">$ </span>heroku create nid-exemple
+Creating nid-exemple.......... <span class="k">done</span>
+Created http://nid-exemple.heroku.com/ | git@heroku.com:nid-exemple.git
+</code></pre></div>
+
+
+<p>Ensuite, on doit copier <code>nid.defaults.yml</code> vers <code>nid.yml</code>, configurer une <a href="http://dev.twitter.com/apps/new">nouvelle application Twitter</a> et remplir les 4 valeurs manquantes dans le fichier de configuration :</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span><span class="nb">cd </span>config
+<span class="nv">$ </span>cp nid.defaults.yml nid.yml
+<span class="nv">$ </span>cat nid.yml
+twitter:
+  consumer_key: 
+  consumer_secret: 
+  access_token: 
+  access_secret: 
+</code></pre></div>
+
+
+<p>Par la suite, on doit modifier le fichier <code>nid.rb</code> pour lui dire d’utiliser la base de données fournie par Heroku :</p>
+
+<div class="highlight"><pre><code class="ruby"><span class="c1"># DataMapper.setup :default, &#39;postgres://localhost/nid_development&#39;</span>
+<span class="no">DataMapper</span><span class="o">.</span><span class="n">setup</span> <span class="ss">:default</span><span class="p">,</span> <span class="no">ENV</span><span class="o">[</span><span class="s1">&#39;DATABASE_URL&#39;</span><span class="o">]</span>
+</code></pre></div>
+
+
+<p>Maintenant que toutes les modifications sont faites, on peut <em>committer</em> nos changements et les <em>pusher</em> à la branche <code>heroku</code> :</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>git add config/nid.yml nid.rb
+<span class="nv">$ </span>git commit -m <span class="s2">&quot;Add custom configuration&quot;</span>
+<span class="nv">$ </span>git push heroku master
+-----&gt; Heroku receiving push
+-----&gt; Rack app detected
+-----&gt; Gemfile detected, running Bundler version 1.0.0
+       ...
+       ...
+       ...
+-----&gt; Launching.... <span class="k">done</span>
+<span class="k">       </span>http://nid-exemple.heroku.com deployed to Heroku
+</code></pre></div>
+
+
+<p>Heroku va déployer l’application en installant d’abord toutes les <em>gems</em> qu’elle nécéssite. Lorsque l’opération est complétée, l’application fonctionne, mais la base de données est toujours vide.</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>heroku rake import
+...
+...
+...
+<span class="s2">&quot;Sleeping for 10 seconds...&quot;</span>
+</code></pre></div>
+
+
+<p>Si vous apercevez cette ligne, c’est signe que des <em>tweets</em> ont déjà commencé à peupler votre base de données! Vous pouvez naviguer vers l’URL de votre application (<em>http://votre-application.heroku.com</em>) pour le constater. Par contre, si vous apercevez cette ligne :</p>
+
+<div class="highlight"><pre><code class="bash">rake aborted!
+<span class="o">(</span>502<span class="o">)</span>: Bad Gateway
+</code></pre></div>
+
+
+<p>C’est signe que l’API de Twitter éprouve des problèmes. Il suffit de relancer la commande <code>heroku rake import</code> jusqu’à ce que cette dernière se termine normalement, sans instruction <code>rake aborted!</code>. Le processus d’importation importe toujours des <em>tweets</em> plus anciens que ceux déjà dans la base de données; il n’y a donc pas de risque d’obtenir des <em>tweets</em> en double.</p>
+
+<p>Lorsque tous vos tweets seront importés, il ne restera plus qu’à les mettre à jour lorsque vous en posterez de nouveaux. Cette méthode n’est pas encore automatisée (au moment d’écrire ces lignes!) et doit être effectuée à l’aide de la commande suivante :</p>
+
+<div class="highlight"><pre><code class="bash"><span class="nv">$ </span>heroku rake update
+</code></pre></div>
+
+
+<p>Encore une fois, cette commande ne créera pas de <em>tweets</em> dupliqués.</p>
+
+<h2>Développement</h2>
+
+<p>Nid est loin d’être une application parfaite. Beaucoup de lacunes sont présentes au niveau visuel, fonctionnel, performance, etc. Par contre, je crois qu’elle a un bon potentiel, surtout en ce qui a trait à sa facilité (pour une application Ruby!) de déploiement.</p>
+
+<p>Si vous désirez contribuer au projets, n’hésitez pas à m’envoyer une “<em>pull request</em>” via la <a href="http://github.com/remiprev/nid">page du projet sur GitHub</a>.</p>
+
+        </div>
+        <div class="article-meta">
+          Cette note a été publiée le 17 octobre 2010 par <a href="http://exomel.com">Rémi Prévost</a>. Vous pouvez lui faire part de vos commentaires par courriel à <code>remi</code> suivi du symbole habituel puis de <code>exomel.com</code>. Vous devriez également le suivre sur Twitter via <a href="http://twitter.com/remi">@remi</a>.
+        </div>
+      </article>
+
+    </div>
+  </div>
+</body>
+</html>
+
